@@ -81,14 +81,14 @@ FE  ──→  eventi Socket.io concordati con BE-3    ──→  BE-3
 ## Naming dei branch
 
 ```
-layer/id-persona/descrizione-feature
+layer/nome-dev/feature-da-sviluppare
 ```
 
 Esempi:
-- `frontend/fe2/match-feed-card`
-- `backend/be1/oauth-google`
-- `database/db1/migration-match-events`
-- `techlead/openapi-contract-v1`
+- `frontend/tommaso/match-feed-card`
+- `backend/christian/oauth-google`
+- `database/laura/migration-match-events`
+- `techlead/christian/openapi-contract-v1`
 
 ---
 
