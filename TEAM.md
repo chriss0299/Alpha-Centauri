@@ -11,11 +11,11 @@ Ogni layer ha ownership completo del proprio ambito; le modifiche cross-layer ri
 
 Ownership: `client/`
 
-| ID | Area di responsabilità |
-|----|------------------------|
-| **FE-1** | Routing, pagine, layout, PWA (Workbox, manifest, offline) |
-| **FE-2** | Componenti UI (feed live, card partita, form eventi), design system |
-| **FE-3** | Pinia stores, composables, integrazione Socket.io lato client, auth flow |
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **FE-1** | Sasha | Routing, pagine, layout, PWA (Workbox, manifest, offline) |
+| **FE-2** | Tommaso | Componenti UI (feed live, card partita, form eventi), design system |
+| **FE-3** | Alexia | Pinia stores, composables, integrazione Socket.io lato client, auth flow |
 
 ---
 
@@ -23,11 +23,11 @@ Ownership: `client/`
 
 Ownership: `server/`
 
-| ID | Area di responsabilità |
-|----|------------------------|
-| **BE-1** | Auth (JWT, OAuth), middleware, rate limiting, sicurezza |
-| **BE-2** | Routes e controllers (partite, eventi, feed), logica PA e affidabilità |
-| **BE-3** | Socket.io server, Redis cache, S3, job asincroni |
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **BE-1** | Christian | Auth (JWT, OAuth), middleware, rate limiting, sicurezza |
+| **BE-2** | Daniele | Routes e controllers (partite, eventi, feed), logica PA e affidabilità |
+| **BE-3** | Andrea | Socket.io server, Redis cache, S3, job asincroni |
 
 ---
 
@@ -35,9 +35,9 @@ Ownership: `server/`
 
 Ownership: `database/`
 
-| ID | Area di responsabilità |
-|----|------------------------|
-| **DB-1** | Migrazioni, seeds, ottimizzazione query, audit log, backup, phpMyAdmin |
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **DB-1** | Laura | Migrazioni, seeds, ottimizzazione query, audit log, backup, phpMyAdmin |
 
 ---
 
@@ -45,9 +45,19 @@ Ownership: `database/`
 
 Ruolo trasversale, non assegnato a un layer specifico.
 
-| ID | Area di responsabilità |
-|----|------------------------|
-| **TL** | Architettura, code review finale, contratto API `/api/v1/`, decisioni cross-layer, CI/CD |
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **TL** | Christian | Architettura, code review finale, contratto API `/api/v1/`, decisioni cross-layer, CI/CD |
+
+---
+
+## Designer / Grafico — 1 persona
+
+Ruolo trasversale, non assegnato a un layer specifico.
+
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **DES** | Matteo | UI/UX design, design system, asset grafici, prototipazione |
 
 ---
 
