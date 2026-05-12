@@ -92,6 +92,53 @@ Esempi:
 
 ---
 
+## Pull Request — quando farla e come
+
+### Quando aprire una PR
+
+Apri una PR verso `main` quando:
+
+- la feature è **completata e testata** sul tuo branch
+- il codice è **pronto per la review** (non usare le PR come backup del work in progress)
+- hai risolto eventuali **conflitti** con `main` prima di aprire la PR
+
+> Ogni PR deve essere approvata dal **Tech Lead (Christian)** prima del merge.  
+> Se la feature tocca più layer, serve anche l'approvazione del responsabile dell'altro layer coinvolto.
+
+---
+
+### Come aprire una PR su GitHub
+
+1. Fai push del tuo branch:
+   ```
+   git push origin layer/nome-dev/feature-da-sviluppare
+   ```
+2. Vai su GitHub → tab **Pull requests** → **New pull request**
+3. Imposta:
+   - **base:** `main`
+   - **compare:** il tuo branch
+4. Compila il titolo con il formato:
+   ```
+   [LAYER] Breve descrizione della feature
+   ```
+   Esempio: `[FE] Aggiunta card match-feed`
+5. Nella descrizione includi:
+   - **Cosa fa** questa PR
+   - **Come testare** la modifica
+   - **Screenshot** (se è una modifica visiva)
+6. Assegna come **Reviewer**: `chriss0299` (Christian — Tech Lead)
+7. Clicca **Create pull request**
+
+---
+
+### Regole di merge
+
+- Il merge lo esegue **solo il Tech Lead**
+- Non fare mai merge del proprio branch senza approvazione
+- Il branch viene eliminato dopo il merge
+
+---
+
 ## Rischi e mitigazioni
 
 | Rischio | Mitigazione |
