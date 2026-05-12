@@ -22,21 +22,29 @@ Il PRD completo è in `prd.md`.
 
 ```
 Alpha-Centauri/
-├── client/          # Nuxt 3 PWA
+├── client/              # Nuxt 3 PWA
 │   ├── pages/
 │   ├── components/
 │   ├── composables/
-│   ├── stores/      # Pinia
+│   ├── stores/          # Pinia
 │   └── public/
-├── server/          # Node.js + Express API
+├── server/              # Node.js + Express API
 │   ├── routes/
 │   ├── controllers/
 │   ├── models/
 │   ├── middleware/
-│   └── socket/      # Socket.io handlers
+│   └── socket/          # Socket.io handlers
 ├── database/
 │   ├── migrations/
 │   └── seeds/
+├── docs/
+│   ├── decisions.md     # Decisioni architetturali con motivazione
+│   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
+│   └── user-stories.md  # Generato da /user-stories — non editare manualmente
+├── graphify-out/        # Knowledge graph (generato — non editare manualmente)
+├── .claude/
+│   ├── settings.json    # Hook caveman + PreToolUse graphify + permessi dev
+│   └── commands/        # Skill del team (/user-stories)
 ├── prd.md
 ├── CLAUDE.md
 └── README.md
@@ -106,11 +114,19 @@ Chiama `advisor` PRIMA di scrivere o modificare:
 
 NON chiamare per: CRUD semplici, componenti UI, query read-only, config files, bug fix isolati in un layer, rinomina/refactor.
 
+## Documentazione di riferimento
+
+Prima di rispondere a domande sul dominio o sull'architettura, leggi:
+- `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
+- `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
+- `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
+
 ## graphify
 
-This project has a graphify knowledge graph at graphify-out/.
+Questo progetto ha un knowledge graph in `graphify-out/`.
 
-Rules:
-- Before answering architecture or codebase questions, read graphify-out/GRAPH_REPORT.md for god nodes and community structure
-- If graphify-out/wiki/index.md exists, navigate it instead of reading raw files
-- After modifying code files in this session, run `python3 -c "from graphify.watch import _rebuild_code; from pathlib import Path; _rebuild_code(Path('.'))"` to keep the graph current
+Regole:
+- Prima di rispondere a domande su architettura o codebase, leggi `graphify-out/GRAPH_REPORT.md` per god nodes e struttura delle community
+- Se esiste `graphify-out/wiki/index.md`, naviga quello invece di leggere i file raw
+- Il grafo si aggiorna automaticamente dopo ogni commit tramite post-commit hook
+- Per aggiornare docs/PDF/immagini: `/graphify . --update`
