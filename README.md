@@ -23,6 +23,45 @@ Alpha-Centauri/
 └── README.md
 ```
 
+## Setup Claude Code (una volta per dev)
+
+Questo repo usa [graphify](https://github.com/graphifyy/graphifyy) per mantenere un knowledge graph della codebase condiviso tra tutti i dev e tutte le istanze Claude Code.
+
+Il grafo è già committato in `graphify-out/` — **Claude Code lo legge automaticamente** dal primo clone. `graphify-out/graph.html` è apribile in browser per una visualizzazione interattiva.
+
+**Obbligatorio prima di iniziare a sviluppare:** installa graphify per tenere il grafo aggiornato ad ogni commit.
+
+### 1. Installa graphify
+
+```bash
+uv tool install graphifyy
+# oppure: pipx install graphifyy
+```
+
+### 2. Installa la skill e configura Claude Code
+
+**Mac / Linux:**
+```bash
+graphify install
+graphify claude install
+graphify hook install
+```
+
+**Windows:**
+```bash
+graphify install --platform windows
+graphify claude install
+graphify hook install
+```
+
+`graphify hook install` installa due cose:
+- **Post-commit hook** — ricostruisce il grafo automaticamente dopo ogni commit (solo AST, zero costo API)
+- **Git merge driver** — unisce automaticamente i grafi di branch diversi al merge, senza conflict markers
+
+> Il grafo in `graphify-out/` è già presente — non serve eseguire `graphify .`. I comandi sopra sono sufficienti.
+
+---
+
 ## Prerequisiti
 
 - Node.js 20+

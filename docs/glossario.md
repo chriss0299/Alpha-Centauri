@@ -1,0 +1,62 @@
+# Glossario — RugbyTracker Community
+
+Termini di dominio con definizione e mapping naming tra layer.
+Fonte: `prd.md`. Aggiornare quando si introduce nuova terminologia.
+
+---
+
+## Naming cross-layer
+
+| Dominio | DB (snake_case) | BE (camelCase) | FE (PascalCase) |
+|---------|-----------------|----------------|-----------------|
+| Partita | `matches` | `match` | `Match` |
+| Evento di gioco | `match_events` | `matchEvent` | `MatchEvent` |
+| Utente | `users` | `user` | `User` |
+| Squadra | `teams` | `team` | `Team` |
+| Campionato | `championships` | `championship` | `Championship` |
+| Punteggio affidabilità | `reliability_score` | `reliabilityScore` / `paScore` | `ReliabilityScore` |
+| Profilo giocatore | `player_profiles` | `playerProfile` | `PlayerProfile` |
+
+---
+
+## Termini di dominio
+
+### PA (Punteggio Affidabilità)
+Metrica numerica per utente. Sale con contributi corretti e confermati, scende con inserimenti contestati o rifiutati. Controlla soglie anti-spam e privilegi di inserimento. Non è il livello utente.
+
+### Livello utente
+Classificazione 0–4 dell'utente normale: Spettatore (0), Tifoso (1), Cronista (2), Redattore (3), Verificatore (4). Distinto dal PA: il livello è uno status, il PA è una metrica continua.
+
+### Certificazione
+Processo che porta una partita da `TERMINATA` a `CERTIFICATA`. Richiede conferma da entrambi gli Admin Squadra o fonte ufficiale. Blocca ulteriori modifiche agli eventi senza audit log.
+
+### Minuto 1 (Regola del minuto 1)
+Vincolo: eventi di gioco inseribili solo dopo 60 secondi dall'inizio ufficiale della partita. Vedi `docs/decisions.md`.
+
+### Affidabilità evento
+Livello di affidabilità di un singolo evento nel feed:
+- 🟡 **Community** — inserito da utente, non verificato
+- 🔵 **Confermato** — consensus ≥ 3 utenti indipendenti
+- 🟣 **Verificato** — inserito/confermato da utente premium (Giocatore, Squadra, Arbitro)
+- ✅ **Certificato** — fonte ufficiale o Admin Squadra di entrambe le squadre
+
+### Match lifecycle
+Sequenza stati di una partita: `PROGRAMMATA` → `IN CORSO` → `TERMINATA` → `CERTIFICATA`. Ogni transizione ha regole e attori autorizzati.
+
+### Room Socket
+Canale Socket.io dedicato a una partita. Naming: `match:<match_id>`. Tutti i client che seguono quella partita sono iscritti alla room. Gli eventi emessi dal server hanno prefisso `match:`.
+
+### Utente premium
+Categoria che include Giocatore, Squadra, Arbitro. Hanno verifiche aggiuntive, peso maggiore nella certificazione dati, accesso a funzionalità esclusive.
+
+### parental_consent
+Flag booleano su profilo utente. Se `false` e l'utente è minorenne (< 18 anni), nome e cognome completi non vengono esposti. Obbligatorio per GDPR.
+
+### Evento di gara
+Azione registrata durante una partita: meta, trasformazione, drop goal, calcio di punizione, cartellino giallo, cartellino rosso, sostituzione, inizio/fine tempo. Ogni evento ha timestamp, autore, posizione campo opzionale, livello affidabilità.
+
+### Admin Squadra
+Ruolo premium assegnato a chi gestisce la pagina ufficiale di una squadra. Può confermare risultati e contribuire alla certificazione partita. Distinto da Admin di sistema (Super Admin, Moderatore, Editor).
+
+### Audit log
+Registro immutabile di ogni modifica a eventi di partite `CERTIFICATE`. Contiene: chi ha modificato, cosa, quando, valore precedente e nuovo. Obbligatorio per tracciabilità ufficiale.
