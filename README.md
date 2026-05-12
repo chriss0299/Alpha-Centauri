@@ -15,11 +15,16 @@ PWA mobile-first per il rugby di categoria B e settori giovanili. Permette a tif
 
 ```
 Alpha-Centauri/
-├── client/       # Nuxt 3 PWA
-├── server/       # Express API
-├── database/     # Migrations e seeds MySQL
-├── prd.md        # Product Requirements Document
-├── CLAUDE.md     # Contesto per Claude Code
+├── client/              # Nuxt 3 PWA
+├── server/              # Express API
+├── database/            # Migrations e seeds MySQL
+├── docs/                # Decisioni architetturali, glossario, user stories
+├── graphify-out/        # Knowledge graph della codebase (generato)
+├── .claude/
+│   ├── settings.json    # Hook e permessi Claude Code (condiviso)
+│   └── commands/        # Skill Claude Code del team (/user-stories)
+├── prd.md               # Product Requirements Document
+├── CLAUDE.md            # Contesto per Claude Code
 └── README.md
 ```
 
@@ -67,6 +72,7 @@ graphify hook install
 - Node.js 20+
 - MySQL 8+
 - Redis 7+
+- Python 3.10+ (richiesto da graphify)
 - phpMyAdmin (opzionale, per gestione DB in sviluppo)
 
 ## Avvio in sviluppo
@@ -137,6 +143,9 @@ Per i dettagli completi vedere [prd.md](./prd.md).
 
 ## Contribuire
 
-1. Crea un branch da `main` con naming `feat/<descrizione>` o `fix/<descrizione>`
+1. Crea un branch da `main` con naming `layer/nome-dev/feature-da-sviluppare` (es. `frontend/sasha/match-feed-card`)
 2. Apri una Pull Request verso `main` con descrizione delle modifiche
 3. Ogni PR deve passare lint e test prima del merge
+4. Il merge è eseguito solo dal Tech Lead
+
+Vedere [TEAM.md](./TEAM.md) per regole complete su branch, PR e collaborazione cross-layer.
