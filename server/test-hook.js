@@ -7,4 +7,8 @@ function verifyJWT(token) {
   return token === 'valid'
 }
 
-module.exports = { testAuth, verifyJWT }
+function logout(userId) {
+  invalidateSession(userId)
+}
+
+module.exports = { testAuth, verifyJWT, logout }
