@@ -41,13 +41,14 @@ Alpha-Centauri/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
 │   └── user-stories.md  # Generato da /user-stories — non editare manualmente
-├── graphify-out/        # Knowledge graph (generato — non editare manualmente)
 ├── .claude/
 │   ├── settings.json    # Hook caveman + PreToolUse graphify + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
 ├── prd.md
 ├── CLAUDE.md
 └── README.md
+
+# graphify-out/ NON esiste qui — il grafo vive in ../Alpha-Centauri-graph/graphify-out/
 ```
 
 ## Dominio — concetti chiave
@@ -121,12 +122,56 @@ Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
 - `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
 
-## graphify
+## Graphify — Knowledge Graph Condiviso
 
-Questo progetto ha un knowledge graph in `graphify-out/`.
+Questo progetto usa un **grafo condiviso tra tutti i dev e tutte le istanze Claude Code**.
+Il grafo è ospitato in una repo separata: `Alpha-Centauri-graph` (stesso owner GitHub).
 
-Regole:
-- Prima di rispondere a domande su architettura o codebase, leggi `graphify-out/GRAPH_REPORT.md` per god nodes e struttura delle community
-- Se esiste `graphify-out/wiki/index.md`, naviga quello invece di leggere i file raw
-- Il grafo si aggiorna automaticamente dopo ogni commit tramite post-commit hook
-- Per aggiornare docs/PDF/immagini: `/graphify . --update`
+### Dove leggere il grafo
+
+Il grafo è clonato localmente in `../Alpha-Centauri-graph/` (cartella sorella di questa repo).
+Prima di rispondere a domande su architettura, codebase o decisioni cross-layer:
+1. Leggi `../Alpha-Centauri-graph/GRAPH_REPORT.md` — god nodes, community, connessioni sorprendenti
+2. Se esiste `../Alpha-Centauri-graph/wiki/index.md`, naviga quello invece dei file raw
+
+### Regola di lettura all'avvio sessione
+
+All'inizio di ogni sessione Claude Code:
+1. Esegui `git -C ../Alpha-Centauri-graph pull origin main` per sincronizzare il grafo
+2. Leggi `../Alpha-Centauri-graph/GRAPH_REPORT.md`
+3. Conferma al dev: "Grafo aggiornato — [data ultimo commit graph-repo]"
+
+### Quando aggiornare il grafo
+
+Aggiorna il grafo **SOLO quando un dev te lo chiede esplicitamente**, dopo aver verificato che:
+- Il codice funziona (nessun errore in console, test passati)
+- Le modifiche sono logicamente complete (non a metà feature)
+
+### Protocollo di aggiornamento (esegui nell'ordine esatto)
+
+```
+1. git -C ../Alpha-Centauri-graph pull origin main
+   → recupera eventuali aggiornamenti di altri dev
+
+2. Lancia graphify dalla graph-repo, puntando al progetto:
+   /graphify ../Alpha-Centauri --update
+   (working directory deve essere ../Alpha-Centauri-graph)
+   → graphify-out/ viene scritto/aggiornato direttamente in ../Alpha-Centauri-graph/graphify-out/
+   → NON creare graphify-out/ nella repo del progetto
+
+3. git -C ../Alpha-Centauri-graph add .
+   git -C ../Alpha-Centauri-graph commit -m "graph: [descrizione modifiche] — [nome dev]"
+   git -C ../Alpha-Centauri-graph push origin main
+
+4. Conferma al dev: "Grafo aggiornato e pushato. Altri dev vedranno le modifiche al prossimo pull."
+```
+
+> ⚠️ **MAI sovrascrivere senza fare pull prima.** Se il pull trova conflitti, avvisa il dev — non tentare merge automatici su graph.json.
+> ⚠️ **graphify-out/ NON deve mai esistere nella repo del progetto.** Se la trovi, rimuovila con `git rm -r graphify-out/`.
+
+### Cosa NON fare
+
+- Non pushare il grafo senza che un dev lo abbia chiesto esplicitamente
+- Non pushare se il codice ha errori non risolti
+- Non modificare manualmente `graph.json` — è generato da graphify
+- Non eseguire `/graphify .` (rebuild completo) a meno che il dev non lo chieda — usa sempre `--update`

@@ -30,11 +30,9 @@ Alpha-Centauri/
 
 ## Setup Claude Code (una volta per dev)
 
-Questo repo usa [graphify](https://github.com/graphifyy/graphifyy) per mantenere un knowledge graph della codebase condiviso tra tutti i dev e tutte le istanze Claude Code.
+Questo repo usa [graphify](https://github.com/graphifyy/graphifyy) per mantenere un knowledge graph della codebase **condiviso tra tutti i dev e tutte le istanze Claude Code**.
 
-Il grafo è già committato in `graphify-out/` — **Claude Code lo legge automaticamente** dal primo clone. `graphify-out/graph.html` è apribile in browser per una visualizzazione interattiva.
-
-**Obbligatorio prima di iniziare a sviluppare:** installa graphify per tenere il grafo aggiornato ad ogni commit.
+Il grafo **non è nella repo principale** — è ospitato in una repo separata `Alpha-Centauri-graph` che funziona come source of truth unico. Tutti i dev leggono da lì, e solo Claude Code può scrivere (quando richiesto dal dev).
 
 ### 1. Installa graphify
 
@@ -43,27 +41,49 @@ uv tool install graphifyy
 # oppure: pipx install graphifyy
 ```
 
-### 2. Installa la skill e configura Claude Code
+### 2. Installa la skill per il tuo AI assistant
 
 **Mac / Linux:**
 ```bash
 graphify install
 graphify claude install
-graphify hook install
 ```
 
 **Windows:**
 ```bash
 graphify install --platform windows
 graphify claude install
-graphify hook install
 ```
 
-`graphify hook install` installa due cose:
-- **Post-commit hook** — ricostruisce il grafo automaticamente dopo ogni commit (solo AST, zero costo API)
-- **Git merge driver** — unisce automaticamente i grafi di branch diversi al merge, senza conflict markers
+### 3. Clona la graph-repo accanto a questa
 
-> Il grafo in `graphify-out/` è già presente — non serve eseguire `graphify .`. I comandi sopra sono sufficienti.
+La graph-repo deve essere in `../Alpha-Centauri-graph/` rispetto a questa repo.
+
+```bash
+# dalla cartella che contiene Alpha-Centauri/
+git clone https://github.com/<owner>/Alpha-Centauri-graph.git
+```
+
+Struttura attesa sul tuo filesystem:
+```
+REPOSITORY/
+├── Alpha-Centauri/          ← repo principale (questa)
+└── Alpha-Centauri-graph/    ← graph-repo (clona qui)
+    └── graphify-out
+        ├── graph.json
+        ├── graph.html
+        └── GRAPH_REPORT.md
+```
+
+> Dopo il clone, Claude Code legge automaticamente il grafo aggiornato all'avvio di ogni sessione.
+
+### Come funziona il workflow grafo
+
+- **Lettura:** Claude Code fa `git pull` sulla graph-repo all'inizio di ogni sessione e legge `GRAPH_REPORT.md`
+- **Scrittura:** Claude Code aggiorna e pusha il grafo **solo quando un dev lo chiede esplicitamente**, dopo aver verificato che il codice funziona
+- **Merge-safe:** Claude fa sempre `pull` prima di `push` per non sovrascrivere il lavoro degli altri
+
+Vedi `CLAUDE.md` per il protocollo completo.
 
 ---
 

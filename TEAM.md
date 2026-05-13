@@ -159,11 +159,18 @@ Questo repo è configurato per Claude Code con strumenti condivisi in `.claude/`
 Attivo automaticamente per tutti i dev al clone — Claude risponde in stile sintetico (no articoli, no filler). Non richiede configurazione. Per disattivarlo in una sessione: scrivi `stop caveman`.
 
 ### Graphify — knowledge graph
-Il grafo della codebase è in `graphify-out/` e viene letto automaticamente da Claude Code prima di rispondere a domande sull'architettura.
+Il grafo della codebase è ospitato nella repo separata `Alpha-Centauri-graph` e viene letto automaticamente da Claude Code all'avvio di ogni sessione.
 
-- `graphify-out/graph.html` — visualizzazione interattiva, apribile in browser
-- `graphify-out/GRAPH_REPORT.md` — nodi principali, connessioni sorprendenti
-- Si aggiorna automaticamente dopo ogni commit (post-commit hook — richiede setup graphify, vedi README)
+- `../Alpha-Centauri-graph/graph.html` — visualizzazione interattiva, apribile in browser
+- `../Alpha-Centauri-graph/GRAPH_REPORT.md` — nodi principali, connessioni sorprendenti
+- Il grafo viene aggiornato da Claude Code **su richiesta esplicita del dev**, dopo che il codice funziona
+- Un solo writer (Claude Code), tutti leggono dalla stessa fonte — nessun conflitto tra branch
+
+| Rischio grafo | Mitigazione |
+|---|---|
+| Due dev aggiornano il grafo in contemporanea | Claude fa sempre `git pull` prima di `push` — il secondo push incorpora il lavoro del primo |
+| Dev dimentica di aggiornare | Il grafo non è critico per sviluppare — può essere aggiornato in qualsiasi momento |
+| Grafo desincronizzato per branch lunghi | Accettabile — il grafo riflette l'ultimo stato stabile pushato, non il branch corrente |
 
 ### Skill disponibili
 
