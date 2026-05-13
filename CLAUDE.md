@@ -41,7 +41,6 @@ Alpha-Centauri/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
 │   └── user-stories.md  # Generato da /user-stories — non editare manualmente
-├── graphify-out/        # Knowledge graph (generato — non editare manualmente)
 ├── .claude/
 │   ├── settings.json    # Hook caveman + PreToolUse graphify + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
@@ -49,6 +48,8 @@ Alpha-Centauri/
 ├── CLAUDE.md
 └── README.md
 ```
+
+> Il grafo condiviso vive in `../Alpha-Centauri-graph/graphify-out/` — vedi `../CLAUDE.md` per il protocollo.
 
 ## Dominio — concetti chiave
 
@@ -120,13 +121,3 @@ Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
 - `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
-
-## graphify
-
-Questo progetto ha un knowledge graph in `graphify-out/`.
-
-Regole:
-- Prima di rispondere a domande su architettura o codebase, leggi `graphify-out/GRAPH_REPORT.md` per god nodes e struttura delle community
-- Se esiste `graphify-out/wiki/index.md`, naviga quello invece di leggere i file raw
-- Il grafo si aggiorna automaticamente dopo ogni commit tramite post-commit hook
-- Per aggiornare docs/PDF/immagini: `/graphify . --update`

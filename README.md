@@ -19,7 +19,6 @@ Alpha-Centauri/
 ├── server/              # Express API
 ├── database/            # Migrations e seeds MySQL
 ├── docs/                # Decisioni architetturali, glossario, user stories
-├── graphify-out/        # Knowledge graph della codebase (generato)
 ├── .claude/
 │   ├── settings.json    # Hook e permessi Claude Code (condiviso)
 │   └── commands/        # Skill Claude Code del team (/user-stories)
@@ -28,42 +27,26 @@ Alpha-Centauri/
 └── README.md
 ```
 
-## Setup Claude Code (una volta per dev)
+## Knowledge Graph (graphify)
 
-Questo repo usa [graphify](https://github.com/graphifyy/graphifyy) per mantenere un knowledge graph della codebase condiviso tra tutti i dev e tutte le istanze Claude Code.
+Questo progetto usa **[graphify](https://github.com/graphifyy/graphifyy)** per mantenere un knowledge graph condiviso della codebase tra tutti i dev e tutte le istanze Claude Code.
 
-Il grafo è già committato in `graphify-out/` — **Claude Code lo legge automaticamente** dal primo clone. `graphify-out/graph.html` è apribile in browser per una visualizzazione interattiva.
+Il grafo vive nella repo separata `Alpha-Centauri-graph` — source of truth unico, aggiornato da Claude Code su richiesta.
 
-**Obbligatorio prima di iniziare a sviluppare:** installa graphify per tenere il grafo aggiornato ad ogni commit.
-
-### 1. Installa graphify
-
-```bash
-uv tool install graphifyy
-# oppure: pipx install graphifyy
+**Dove trovarlo (dopo il clone della graph-repo):**
+```
+../Alpha-Centauri-graph/graphify-out/graph.html        ← visualizzazione interattiva
+../Alpha-Centauri-graph/graphify-out/GRAPH_REPORT.md   ← god nodes, community, connessioni
 ```
 
-### 2. Installa la skill e configura Claude Code
-
-**Mac / Linux:**
+**Come usarlo in Claude Code:**
 ```bash
-graphify install
-graphify claude install
-graphify hook install
+/graphify query "come funziona l'auth?"   # interroga il grafo
+/graphify explain "RateLimiter"           # spiega un nodo
+/graphify path "UserService" "Database"  # percorso tra due concetti
 ```
 
-**Windows:**
-```bash
-graphify install --platform windows
-graphify claude install
-graphify hook install
-```
-
-`graphify hook install` installa due cose:
-- **Post-commit hook** — ricostruisce il grafo automaticamente dopo ogni commit (solo AST, zero costo API)
-- **Git merge driver** — unisce automaticamente i grafi di branch diversi al merge, senza conflict markers
-
-> Il grafo in `graphify-out/` è già presente — non serve eseguire `graphify .`. I comandi sopra sono sufficienti.
+Setup completo e protocollo di aggiornamento: [`../CLAUDE.md`](../CLAUDE.md)
 
 ---
 
@@ -72,7 +55,7 @@ graphify hook install
 - Node.js 20+
 - MySQL 8+
 - Redis 7+
-- Python 3.10+ (richiesto da graphify)
+- Python 3.10+
 - phpMyAdmin (opzionale, per gestione DB in sviluppo)
 
 ## Avvio in sviluppo
