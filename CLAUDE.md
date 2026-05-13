@@ -1,5 +1,25 @@
 # CLAUDE.md — RugbyTracker Community
 
+## ⚠️ Sessione Claude Code — cartella di avvio
+
+**Controlla subito la cartella da cui è aperta questa sessione.**
+
+Se il CWD è `Alpha-Centauri/` (questa repo), **NON aggiornare il grafo graphify** — i file verrebbero scritti nella repo sbagliata.
+
+Per aggiornare il grafo devi aprire Claude Code dalla **cartella padre** (`Alpha-Centauri-progect/`):
+
+```
+# Chiudi questa sessione, poi:
+cd ..
+claude   # oppure apri VS Code / desktop app dalla cartella padre
+```
+
+Da quella sessione trovi entrambe le repo (`Alpha-Centauri/` e `Alpha-Centauri-graph/`) e graphify scrive nel posto giusto.
+
+**Regola:** se ti viene chiesto di aggiornare il grafo e il CWD è `Alpha-Centauri/`, rifiuta e avvisa il dev con questo messaggio.
+
+---
+
 ## Panoramica del progetto
 
 **RugbyTracker Community** è una PWA (Progressive Web App) mobile-first per il rugby di categoria B e settori giovanili (Under 6–Under 18, Serie B, Serie C, tornei regionali). Funziona come un social network verticale: gli utenti inseriscono eventi di partita in tempo reale durante le gare, alimentando un live feed condiviso.
