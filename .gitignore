@@ -59,10 +59,11 @@ logs/
 !.claude/commands/**
 
 # ============================================================
-# Graphify
+# Graphify — il grafo vive in ../Alpha-Centauri-graph/, mai qui
 # ============================================================
-graphify-out/manifest.json
-graphify-out/cost.json
+graphify-out/
+**/graphify-out/
+.graphify_*
 
 # ============================================================
 # OS e editor
