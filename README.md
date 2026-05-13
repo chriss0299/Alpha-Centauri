@@ -19,7 +19,6 @@ Alpha-Centauri/
 ├── server/              # Express API
 ├── database/            # Migrations e seeds MySQL
 ├── docs/                # Decisioni architetturali, glossario, user stories
-├── graphify-out/        # Knowledge graph della codebase (generato)
 ├── .claude/
 │   ├── settings.json    # Hook e permessi Claude Code (condiviso)
 │   └── commands/        # Skill Claude Code del team (/user-stories)
@@ -28,62 +27,26 @@ Alpha-Centauri/
 └── README.md
 ```
 
-## Setup Claude Code (una volta per dev)
+## Knowledge Graph (graphify)
 
-Questo repo usa [graphify](https://github.com/graphifyy/graphifyy) per mantenere un knowledge graph della codebase **condiviso tra tutti i dev e tutte le istanze Claude Code**.
+Questo progetto usa **[graphify](https://github.com/graphifyy/graphifyy)** per mantenere un knowledge graph condiviso della codebase tra tutti i dev e tutte le istanze Claude Code.
 
-Il grafo **non è nella repo principale** — è ospitato in una repo separata `Alpha-Centauri-graph` che funziona come source of truth unico. Tutti i dev leggono da lì, e solo Claude Code può scrivere (quando richiesto dal dev).
+Il grafo vive nella repo separata `Alpha-Centauri-graph` — source of truth unico, aggiornato da Claude Code su richiesta.
 
-### 1. Installa graphify
+**Dove trovarlo (dopo il clone della graph-repo):**
+```
+../Alpha-Centauri-graph/graphify-out/graph.html        ← visualizzazione interattiva
+../Alpha-Centauri-graph/graphify-out/GRAPH_REPORT.md   ← god nodes, community, connessioni
+```
 
+**Come usarlo in Claude Code:**
 ```bash
-uv tool install graphifyy
-# oppure: pipx install graphifyy
+/graphify query "come funziona l'auth?"   # interroga il grafo
+/graphify explain "RateLimiter"           # spiega un nodo
+/graphify path "UserService" "Database"  # percorso tra due concetti
 ```
 
-### 2. Installa la skill per il tuo AI assistant
-
-**Mac / Linux:**
-```bash
-graphify install
-graphify claude install
-```
-
-**Windows:**
-```bash
-graphify install --platform windows
-graphify claude install
-```
-
-### 3. Clona la graph-repo accanto a questa
-
-La graph-repo deve essere in `../Alpha-Centauri-graph/` rispetto a questa repo.
-
-```bash
-# dalla cartella che contiene Alpha-Centauri/
-git clone https://github.com/<owner>/Alpha-Centauri-graph.git
-```
-
-Struttura attesa sul tuo filesystem:
-```
-REPOSITORY/
-├── Alpha-Centauri/          ← repo principale (questa)
-└── Alpha-Centauri-graph/    ← graph-repo (clona qui)
-    └── graphify-out
-        ├── graph.json
-        ├── graph.html
-        └── GRAPH_REPORT.md
-```
-
-> Dopo il clone, Claude Code legge automaticamente il grafo aggiornato all'avvio di ogni sessione.
-
-### Come funziona il workflow grafo
-
-- **Lettura:** Claude Code fa `git pull` sulla graph-repo all'inizio di ogni sessione e legge `GRAPH_REPORT.md`
-- **Scrittura:** Claude Code aggiorna e pusha il grafo **solo quando un dev lo chiede esplicitamente**, dopo aver verificato che il codice funziona
-- **Merge-safe:** Claude fa sempre `pull` prima di `push` per non sovrascrivere il lavoro degli altri
-
-Vedi `CLAUDE.md` per il protocollo completo.
+Setup completo e protocollo di aggiornamento: [`../CLAUDE.md`](../CLAUDE.md)
 
 ---
 
@@ -92,7 +55,7 @@ Vedi `CLAUDE.md` per il protocollo completo.
 - Node.js 20+
 - MySQL 8+
 - Redis 7+
-- Python 3.10+ (richiesto da graphify)
+- Python 3.10+
 - phpMyAdmin (opzionale, per gestione DB in sviluppo)
 
 ## Avvio in sviluppo

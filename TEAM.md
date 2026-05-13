@@ -147,7 +147,7 @@ Apri una PR verso `main` quando:
 | DB-1 diventa collo di bottiglia | BE propone le migrazioni, DB-1 le approva e ottimizza |
 | Feature cross-layer difficile da coordinare | TL apre un branch condiviso e coordina la PR |
 | Socket.io: eventi non documentati | BE-3 mantiene un registro eventi in `server/socket/EVENTS.md` |
-| Grafi graphify in conflitto tra branch | `graphify hook install` installa merge driver git che unisce automaticamente `graph.json` al merge |
+| Grafo graphify desincronizzato | Claude fa `git pull` prima di ogni push — vedi `../CLAUDE.md` per il protocollo |
 
 ---
 
@@ -159,26 +159,16 @@ Questo repo è configurato per Claude Code con strumenti condivisi in `.claude/`
 Attivo automaticamente per tutti i dev al clone — Claude risponde in stile sintetico (no articoli, no filler). Non richiede configurazione. Per disattivarlo in una sessione: scrivi `stop caveman`.
 
 ### Graphify — knowledge graph
-Il grafo della codebase è ospitato nella repo separata `Alpha-Centauri-graph` e viene letto automaticamente da Claude Code all'avvio di ogni sessione.
 
-- `../Alpha-Centauri-graph/graph.html` — visualizzazione interattiva, apribile in browser
-- `../Alpha-Centauri-graph/GRAPH_REPORT.md` — nodi principali, connessioni sorprendenti
-- Il grafo viene aggiornato da Claude Code **su richiesta esplicita del dev**, dopo che il codice funziona
-- Un solo writer (Claude Code), tutti leggono dalla stessa fonte — nessun conflitto tra branch
-
-| Rischio grafo | Mitigazione |
-|---|---|
-| Due dev aggiornano il grafo in contemporanea | Claude fa sempre `git pull` prima di `push` — il secondo push incorpora il lavoro del primo |
-| Dev dimentica di aggiornare | Il grafo non è critico per sviluppare — può essere aggiornato in qualsiasi momento |
-| Grafo desincronizzato per branch lunghi | Accettabile — il grafo riflette l'ultimo stato stabile pushato, non il branch corrente |
+Il grafo vive in `../Alpha-Centauri-graph/graphify-out/` e viene letto automaticamente da Claude Code all'avvio. Setup e protocollo: [`../CLAUDE.md`](../CLAUDE.md).
 
 ### Skill disponibili
 
 | Skill | Invocazione | Funzione |
 |-------|-------------|----------|
 | User Stories | `/user-stories` | Genera `docs/user-stories.md` dal PRD e dal codice esistente |
-| Knowledge Graph | `/graphify .` | Rigenera il grafo da zero (raro — usare `--update` per aggiornamenti parziali) |
-| Graphify update | `/graphify . --update` | Rigenera solo i file cambiati (docs, PDF, immagini) |
+| Knowledge Graph | `/graphify Alpha-Centauri` | Rigenera il grafo da zero — da `Alpha-Centauri-graph/` |
+| Graphify update | `/graphify Alpha-Centauri --update` | Rigenera solo i file cambiati — da `Alpha-Centauri-graph/` |
 
 ### Advisor
 Claude chiama automaticamente un modello più forte (Opus) prima di toccare logica critica: certificazione partita, PA score, GDPR minori, auth, schema DB. Non richiede azione da parte del dev.
