@@ -42,7 +42,7 @@ Alpha-Centauri/
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
 │   └── user-stories.md  # Generato da /user-stories — non editare manualmente
 ├── .claude/
-│   ├── settings.json    # Hook caveman + PreToolUse graphify + permessi dev
+│   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
 ├── prd.md
 ├── CLAUDE.md
@@ -86,6 +86,7 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 - Nomi tabelle in snake_case, plurali (`match_events`, `user_profiles`)
 - Ogni modifica a eventi di partite `CERTIFICATA` deve produrre un record nell'audit log
 - Non esporre dati personali di giocatori minorenni (< 18 anni) senza flag `parental_consent = true`
+- I profili minorenni hanno `guardian_managed = true`; ogni write deve verificare che il richiedente sia il tutore associato (vedi PRD §4.5)
 
 ### Frontend (Nuxt)
 - Componenti in PascalCase (`MatchFeedCard.vue`)
@@ -109,7 +110,7 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 Chiama `advisor` PRIMA di scrivere o modificare:
 - Logica di transizione stati partita (`TERMINATA` → `CERTIFICATA`) o scrittura audit log
 - Calcolo PA score, soglie anti-spam, effetti su permessi utente
-- Qualsiasi codice che legge/scrive dati di utenti minorenni (GDPR, `parental_consent`)
+- Qualsiasi codice che legge/scrive dati di utenti minorenni (GDPR, `parental_consent`, `guardian_managed`) — vedi PRD §4.5
 - Auth: JWT scopes, OAuth flow, assegnazione ruoli premium
 - Schema DB: foreign keys, indici, strutture con vincoli di integrità non ovvi
 

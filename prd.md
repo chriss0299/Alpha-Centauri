@@ -11,7 +11,7 @@ Status: **Bozza**
 1. [Panoramica del Prodotto](#1-panoramica-del-prodotto)
 2. [Obiettivi e Metriche di Successo](#2-obiettivi-e-metriche-di-successo)
 3. [Utenti Target e Profili](#3-utenti-target-e-profili)
-4. [Architettura dei Profili](#4-architettura-dei-profili)
+4. [Architettura dei Profili](#4-architettura-dei-profili) _(incl. §4.5 GDPR minori)_
 5. [Campionati e Calendari](#5-campionati-e-calendari)
 6. [Gestione Partite](#6-gestione-partite)
 7. [Live Match Feed — Inserimento Dati in Tempo Reale](#7-live-match-feed--inserimento-dati-in-tempo-reale)
@@ -201,7 +201,45 @@ Rappresenta un **arbitro registrato** presso la FIR o una federazione riconosciu
 - Una volta verificato, il profilo riceve lo stato premium e può convalidare eventi di gara con peso 🟣 **Verificato** (vedi §1.3)
 - Può confermare o correggere eventi inseriti dalla community per le partite a cui ha partecipato come arbitro
 
-### 4.5 Profilo Utente Amministratore
+### 4.5 Profilo Giocatore Minorenne — Gestione da Tutore (GDPR)
+
+I profili giocatore riferiti a **soggetti minorenni (< 18 anni)** sono soggetti a vincoli GDPR specifici che impattano la loro creazione e gestione.
+
+#### Regola fondamentale
+
+> Un profilo giocatore minorenne **non può essere creato autonomamente dal minore**. Deve essere creato e gestito esclusivamente tramite il profilo di un **utente adulto tutore** registrato sulla piattaforma.
+
+#### Flusso di creazione
+
+1. Un utente adulto (≥ 18 anni) accede alla sezione "Gestisci profili tutelati"
+2. Dichiara il rapporto di tutela (genitore / tutore legale / delegato della società sportiva)
+3. Crea il profilo giocatore inserendo i dati del minore
+4. Il profilo viene associato all'account tutore come profilo dipendente (`guardian_managed: true`)
+5. Tutte le azioni sul profilo del minore (modifica dati, collegamento a partite, verifica) richiedono autenticazione del tutore
+
+#### Oscuramento dati sensibili (GDPR Art. 8)
+
+I dati personali dei giocatori minorenni sono soggetti a **oscuramento selettivo** in base al consenso:
+
+| Dato                          | Visibilità default (senza consenso esplicito) | Con consenso tutore |
+| ----------------------------- | --------------------------------------------- | ------------------- |
+| Nome e cognome per intero     | ❌ Oscurato → mostra solo nome + iniziale cognome (es. "Luca R.") | ✅ Visibile |
+| Data di nascita               | ❌ Oscurata → mostra solo anno (es. "2011")   | ✅ Visibile |
+| Foto profilo                  | ❌ Non caricabile / avatar generico           | ✅ Caricabile dal tutore |
+| Statistiche di gioco          | ✅ Sempre visibili (dati non identificativi)  | ✅ Visibili |
+| Squadra di appartenenza       | ✅ Sempre visibile                            | ✅ Visibile |
+| Numero maglia                 | ✅ Sempre visibile                            | ✅ Visibile |
+
+Il consenso è revocabile in qualsiasi momento dal tutore; la revoca ripristina l'oscuramento entro 24 ore.
+
+#### Vincoli operativi
+
+- Il minore **non può registrarsi autonomamente** come utente se risulta già presente come profilo giocatore con `guardian_managed: true`
+- Se un minore completa i 18 anni, il sistema notifica il tutore e offre il trasferimento del profilo all'utente diretto (che deve accettare)
+- L'Admin Squadra può aggiungere un giocatore minorenne alla rosa solo se esiste un profilo tutore collegato o tramite importazione massiva con conferma del dirigente
+- I log di audit su profili minorenni sono conservati per il periodo minimo previsto dal GDPR e non accessibili a utenti non amministratori
+
+### 4.6 Profilo Utente Amministratore
 
 Rappresenta un membro dello **staff interno della piattaforma**.
 
@@ -584,7 +622,7 @@ I Moderatori (Livello 3–4) hanno accesso a:
 - **Latenza live feed:** < 2 secondi dalla pubblicazione di un evento alla visualizzazione di tutti gli utenti connessi
 - **Disponibilità:** 99,5% uptime (tenendo conto che i picchi sono il sabato/domenica mattina)
 - **Scalabilità:** architettura in grado di gestire 500 utenti concorrenti su una singola partita popolare
-- **Privacy:** GDPR compliant; i profili minorenni (giocatori Under 18) non mostrano nome e cognome per intero senza consenso esplicito dei genitori/tutori
+- **Privacy:** GDPR compliant (Art. 8); i profili giocatori minorenni (< 18 anni) sono creati e gestiti esclusivamente dall'account di un adulto tutore — il minore non può creare né gestire autonomamente il proprio profilo. I dati sensibili (nome completo, data di nascita, foto) sono oscurati di default e visibili solo con consenso esplicito del tutore, revocabile in qualsiasi momento (vedi §4.5)
 - **Offline graceful (PWA):** il service worker mantiene in cache l'ultima versione dei dati; se la connessione cade durante una partita live l'utente vede comunque gli eventi già scaricati e gli inserimenti in coda vengono sincronizzati al ripristino della connessione
 
 ### 14.3 Sicurezza
@@ -592,7 +630,9 @@ I Moderatori (Livello 3–4) hanno accesso a:
 - Rate limiting su tutti gli endpoint di scrittura
 - Validazione server-side di tutti i dati inseriti dalla community
 - Audit log immutabile di tutte le modifiche a eventi di partita certificata
-- Nessun dato personale sensibile nei profili giocatori minorenni senza consenso
+- Nessun dato personale sensibile nei profili giocatori minorenni senza consenso del tutore registrato
+- I profili minorenni sono flag `guardian_managed: true` nel DB; ogni operazione di scrittura verifica che il richiedente sia il tutore associato
+- Il trasferimento del profilo al compimento dei 18 anni richiede accettazione attiva dell'utente diretto
 
 ---
 
