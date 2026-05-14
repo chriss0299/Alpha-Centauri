@@ -147,6 +147,7 @@ Apri una PR verso `main` quando:
 | DB-1 diventa collo di bottiglia | BE propone le migrazioni, DB-1 le approva e ottimizza |
 | Feature cross-layer difficile da coordinare | TL apre un branch condiviso e coordina la PR |
 | Socket.io: eventi non documentati | BE-3 mantiene un registro eventi in `server/socket/EVENTS.md` |
+| Grafo graphify desincronizzato | Claude fa `git pull` prima di ogni push — vedi `../CLAUDE.md` per il protocollo |
 
 ---
 
@@ -157,11 +158,17 @@ Questo repo è configurato per Claude Code con strumenti condivisi in `.claude/`
 ### Caveman mode
 Attivo automaticamente per tutti i dev al clone — Claude risponde in stile sintetico (no articoli, no filler). Non richiede configurazione. Per disattivarlo in una sessione: scrivi `stop caveman`.
 
+### Graphify — knowledge graph
+
+Il grafo vive in `../Alpha-Centauri-graph/graphify-out/` e viene letto automaticamente da Claude Code all'avvio. Setup e protocollo: [`../CLAUDE.md`](../CLAUDE.md).
+
 ### Skill disponibili
 
 | Skill | Invocazione | Funzione |
 |-------|-------------|----------|
 | User Stories | `/user-stories` | Genera `docs/user-stories.md` dal PRD e dal codice esistente |
+| Knowledge Graph | `/graphify Alpha-Centauri` | Rigenera il grafo da zero — da `Alpha-Centauri-graph/` |
+| Graphify update | `/graphify Alpha-Centauri --update` | Rigenera solo i file cambiati — da `Alpha-Centauri-graph/` |
 
 ### Advisor
 Claude chiama automaticamente un modello più forte (Opus) prima di toccare logica critica: certificazione partita, PA score, GDPR minori, auth, schema DB. Non richiede azione da parte del dev.

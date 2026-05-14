@@ -27,11 +27,35 @@ Alpha-Centauri/
 └── README.md
 ```
 
+## Knowledge Graph (graphify)
+
+Questo progetto usa **[graphify](https://github.com/graphifyy/graphifyy)** per mantenere un knowledge graph condiviso della codebase tra tutti i dev e tutte le istanze Claude Code.
+
+Il grafo vive nella repo separata `Alpha-Centauri-graph` — source of truth unico, aggiornato da Claude Code su richiesta.
+
+**Dove trovarlo (dopo il clone della graph-repo):**
+```
+../Alpha-Centauri-graph/graphify-out/graph.html        ← visualizzazione interattiva
+../Alpha-Centauri-graph/graphify-out/GRAPH_REPORT.md   ← god nodes, community, connessioni
+```
+
+**Come usarlo in Claude Code:**
+```bash
+/graphify query "come funziona l'auth?"   # interroga il grafo
+/graphify explain "RateLimiter"           # spiega un nodo
+/graphify path "UserService" "Database"  # percorso tra due concetti
+```
+
+Setup completo e protocollo di aggiornamento: [`../CLAUDE.md`](../CLAUDE.md)
+
+---
+
 ## Prerequisiti
 
 - Node.js 20+
 - MySQL 8+
 - Redis 7+
+- Python 3.10+
 - phpMyAdmin (opzionale, per gestione DB in sviluppo)
 
 ## Avvio in sviluppo

@@ -49,6 +49,8 @@ Alpha-Centauri/
 └── README.md
 ```
 
+> Il grafo condiviso vive in `../Alpha-Centauri-graph/graphify-out/` — vedi `../CLAUDE.md` per il protocollo.
+
 ## Dominio — concetti chiave
 
 ### Tipi di utente
@@ -120,4 +122,3 @@ Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
 - `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
-
