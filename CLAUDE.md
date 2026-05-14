@@ -41,9 +41,8 @@ Alpha-Centauri/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
 │   └── user-stories.md  # Generato da /user-stories — non editare manualmente
-├── graphify-out/        # Knowledge graph (generato — non editare manualmente)
 ├── .claude/
-│   ├── settings.json    # Hook caveman + PreToolUse graphify + permessi dev
+│   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
 ├── prd.md
 ├── CLAUDE.md
@@ -85,6 +84,7 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 - Nomi tabelle in snake_case, plurali (`match_events`, `user_profiles`)
 - Ogni modifica a eventi di partite `CERTIFICATA` deve produrre un record nell'audit log
 - Non esporre dati personali di giocatori minorenni (< 18 anni) senza flag `parental_consent = true`
+- I profili minorenni hanno `guardian_managed = true`; ogni write deve verificare che il richiedente sia il tutore associato (vedi PRD §4.5)
 
 ### Frontend (Nuxt)
 - Componenti in PascalCase (`MatchFeedCard.vue`)
@@ -108,7 +108,7 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 Chiama `advisor` PRIMA di scrivere o modificare:
 - Logica di transizione stati partita (`TERMINATA` → `CERTIFICATA`) o scrittura audit log
 - Calcolo PA score, soglie anti-spam, effetti su permessi utente
-- Qualsiasi codice che legge/scrive dati di utenti minorenni (GDPR, `parental_consent`)
+- Qualsiasi codice che legge/scrive dati di utenti minorenni (GDPR, `parental_consent`, `guardian_managed`) — vedi PRD §4.5
 - Auth: JWT scopes, OAuth flow, assegnazione ruoli premium
 - Schema DB: foreign keys, indici, strutture con vincoli di integrità non ovvi
 
@@ -121,12 +121,3 @@ Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
 - `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
 
-## graphify
-
-Questo progetto ha un knowledge graph in `graphify-out/`.
-
-Regole:
-- Prima di rispondere a domande su architettura o codebase, leggi `graphify-out/GRAPH_REPORT.md` per god nodes e struttura delle community
-- Se esiste `graphify-out/wiki/index.md`, naviga quello invece di leggere i file raw
-- Il grafo si aggiorna automaticamente dopo ogni commit tramite post-commit hook
-- Per aggiornare docs/PDF/immagini: `/graphify . --update`
