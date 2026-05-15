@@ -14,7 +14,11 @@
       "Bash(git -C ../Alpha-Centauri-graph add .)",
       "Bash(git -C ../Alpha-Centauri-graph commit *)",
       "Bash(git -C ../Alpha-Centauri-graph push origin main)",
-      "Bash(cp -r graphify-out/* ../Alpha-Centauri-graph/)"
+      "Bash(cp -r graphify-out/* ../Alpha-Centauri-graph/)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(gh pr create --title 'docs: aggiungi membro DF-1 Desire al team \\(Data & Finanza\\)' --body ' *)"
     ]
   },
   "hooks": {
