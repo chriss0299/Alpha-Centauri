@@ -2,7 +2,7 @@
 
 ## Struttura verticale per layer
 
-Il team è composto da 8 persone divise per layer tecnologico.
+Il team è composto da 9 persone divise per layer tecnologico.
 Ogni layer ha ownership completo del proprio ambito; le modifiche cross-layer richiedono PR approvata da entrambi i layer coinvolti e dal Tech Lead.
 
 ---
@@ -51,6 +51,16 @@ Ruolo trasversale, non assegnato a un layer specifico.
 
 ---
 
+## Data & Finanza — 1 persona
+
+Ruolo trasversale, non assegnato a un layer specifico.
+
+| ID | Nome | Area di responsabilità |
+|----|------|------------------------|
+| **DF-1** | Desire | Data analysis, gestione spese, reportistica finanziaria del progetto |
+
+---
+
 ## Designer / Grafico — 1 persona
 
 Ruolo trasversale, non assegnato a un layer specifico.
@@ -89,6 +99,7 @@ Esempi:
 - `backend/christian/oauth-google`
 - `database/laura/migration-match-events`
 - `techlead/christian/openapi-contract-v1`
+- `data/desire/analisi-spese-q1`
 
 ---
 
