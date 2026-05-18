@@ -24,4 +24,19 @@ router.post(
   authController.register
 );
 
+router.post(
+  '/login',
+  rateLimiter.write,
+  [
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Email non valida'),
+    body('password')
+      .notEmpty()
+      .withMessage('Password obbligatoria'),
+  ],
+  authController.login
+);
+
 module.exports = router;
