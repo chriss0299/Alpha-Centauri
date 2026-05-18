@@ -44,6 +44,7 @@ Alpha-Centauri/
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
+├── .env.example         # Variabili d'ambiente richieste — copia in .env e compila
 ├── prd.md
 ├── CLAUDE.md
 └── README.md
@@ -75,6 +76,13 @@ La regola del **minuto 1**: gli eventi di gioco sono inseribili solo dopo 60 sec
 Metrica per utente che sale con contributi corretti e scende con inserimenti contestati. Controlla i privilegi anti-spam.
 
 ## Convenzioni di sviluppo
+
+### Setup locale
+
+```bash
+cp .env.example .env   # compila JWT_SECRET, DB_*, REDIS_URL
+cd server && npm install
+```
 
 ### API REST (Express)
 - Prefisso: `/api/v1/`
