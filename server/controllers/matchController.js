@@ -160,8 +160,43 @@ async function getMatches(req, res) {
   }
 }
 
-function getMatchById(req, res) {
-  res.status(501).json({ error: 'Not implemented' });
+async function getMatchById(req, res) {
+  const { matchId } = req.params;
+
+  try {
+    const [[match]] = await db.query(
+      `SELECT
+         m.id, m.status, m.scheduled_at, m.venue, m.created_by, m.created_at,
+         ht.id AS home_id, ht.name AS home_name,
+         at.id AS away_id, at.name AS away_name,
+         c.id AS championship_id, c.name AS championship_name
+       FROM matches m
+       JOIN teams ht ON ht.id = m.home_team_id
+       JOIN teams at ON at.id = m.away_team_id
+       JOIN championships c ON c.id = m.league_id
+       WHERE m.id = ?`,
+      [matchId]
+    );
+
+    if (!match) {
+      return res.status(404).json({ error: 'Partita non trovata' });
+    }
+
+    return res.status(200).json({
+      id: match.id,
+      status: match.status,
+      homeTeam: { id: match.home_id, name: match.home_name },
+      awayTeam: { id: match.away_id, name: match.away_name },
+      league: { id: match.championship_id, name: match.championship_name },
+      scheduledAt: match.scheduled_at,
+      venue: match.venue,
+      createdBy: match.created_by,
+      createdAt: match.created_at,
+    });
+  } catch (err) {
+    console.error('getMatchById error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 function updateMatchStatus(req, res) {
