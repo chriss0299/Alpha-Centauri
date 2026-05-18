@@ -87,8 +87,77 @@ async function createMatch(req, res) {
   }
 }
 
-function getMatches(req, res) {
-  res.status(501).json({ error: 'Not implemented' });
+const VALID_STATUSES = ['PROGRAMMATA', 'IN_CORSO', 'TERMINATA', 'CERTIFICATA'];
+
+async function getMatches(req, res) {
+  const { status, league_id, date, page = 1, limit = 20 } = req.query;
+
+  if (status && !VALID_STATUSES.includes(status)) {
+    return res.status(422).json({ errors: [`status non valido. Valori ammessi: ${VALID_STATUSES.join(', ')}`] });
+  }
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+  const offset = (pageNum - 1) * limitNum;
+
+  const conditions = [];
+  const params = [];
+
+  if (status) {
+    conditions.push('m.status = ?');
+    params.push(status);
+  }
+  if (league_id) {
+    conditions.push('m.league_id = ?');
+    params.push(league_id);
+  }
+  if (date) {
+    conditions.push('DATE(m.scheduled_at) = ?');
+    params.push(date);
+  }
+
+  const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  try {
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM matches m ${where}`,
+      params
+    );
+
+    const [rows] = await db.query(
+      `SELECT
+         m.id, m.status, m.scheduled_at, m.venue,
+         ht.id AS home_id, ht.name AS home_name,
+         at.id AS away_id, at.name AS away_name,
+         c.id AS championship_id, c.name AS championship_name
+       FROM matches m
+       JOIN teams ht ON ht.id = m.home_team_id
+       JOIN teams at ON at.id = m.away_team_id
+       JOIN championships c ON c.id = m.league_id
+       ${where}
+       ORDER BY m.scheduled_at ASC
+       LIMIT ? OFFSET ?`,
+      [...params, limitNum, offset]
+    );
+
+    return res.status(200).json({
+      data: rows.map((m) => ({
+        id: m.id,
+        status: m.status,
+        homeTeam: { id: m.home_id, name: m.home_name },
+        awayTeam: { id: m.away_id, name: m.away_name },
+        league: { id: m.championship_id, name: m.championship_name },
+        scheduledAt: m.scheduled_at,
+        venue: m.venue,
+      })),
+      page: pageNum,
+      limit: limitNum,
+      total,
+    });
+  } catch (err) {
+    console.error('getMatches error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 function getMatchById(req, res) {
