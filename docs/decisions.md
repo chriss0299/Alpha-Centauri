@@ -68,6 +68,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-18 OAuth Google via ID token verification (lato server)
+
+**Decisione:** Il flow OAuth Google per la PWA usa la verifica lato server dell'ID token (`POST /api/v1/auth/google`) anziché il redirect server-side.
+
+**Motivazione:** La PWA mobile-first gestisce il sign-in Google nativamente nel client (Google Identity Services SDK). Il client ottiene l'ID token e lo invia al backend per la verifica tramite `google-auth-library`. Questo elimina la necessità di gestire redirect OAuth, sessioni temporanee e callback URL — più semplice e robusto per una PWA/mobile.
+
+**Alternative scartate:** Server-side redirect con Passport.js (richiede sessioni, redirect URL, state parameter — overhead non necessario per una PWA che gestisce il login nativa mente nel client).
+
+**Dettaglio implementativo:** `POST /api/v1/auth/google` → `OAuth2Client.verifyIdToken` → trova o crea utente (lookup per `google_id`, fallback per email, link account se `google_id` è null). Risposta: `{ accessToken, refreshToken, isNewUser }`. `google_id` salvato in `users.google_id VARCHAR(255) NULL UNIQUE` (migrazione 003).
+
+---
+
 ## 2026-05-18 Opaque refresh token con rotazione single-use
 
 **Decisione:** Auth usa access token JWT breve (15m) + refresh token opaco long-lived (30d) con rotazione obbligatoria ad ogni uso.

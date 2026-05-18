@@ -50,4 +50,15 @@ router.post(
   authController.refresh
 );
 
+router.post(
+  '/google',
+  rateLimiter.write,
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('ID token Google obbligatorio'),
+  ],
+  authController.googleAuth
+);
+
 module.exports = router;
