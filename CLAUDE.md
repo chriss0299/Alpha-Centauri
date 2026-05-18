@@ -40,7 +40,7 @@ Alpha-Centauri/
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
-│   └── user-stories.md  # Generato da /user-stories — non editare manualmente
+│   └── user-stories/    # Una story per file — generato da /user-stories, non editare manualmente
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
@@ -121,4 +121,4 @@ NON chiamare per: CRUD semplici, componenti UI, query read-only, config files, b
 Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
-- `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
+- `docs/user-stories/` — stories derivate dal PRD (un file per task); generabile con `/user-stories`
