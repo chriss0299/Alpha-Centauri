@@ -48,4 +48,50 @@ async function register(req, res) {
   }
 }
 
-module.exports = { register };
+async function login(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { email, password } = req.body;
+
+  try {
+    const [rows] = await pool.execute(
+      'SELECT id, username, email, password_hash, role, level FROM users WHERE email = ?',
+      [email]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Credenziali non valide' });
+    }
+
+    const user = rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Credenziali non valide' });
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return res.status(200).json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        level: user.level,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
+}
+
+module.exports = { register, login };
