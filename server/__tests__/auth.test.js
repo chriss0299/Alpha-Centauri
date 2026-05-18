@@ -104,4 +104,16 @@ describe('requireRole', () => {
     expect(res.status).toHaveBeenCalledWith(403);
     expect(next).not.toHaveBeenCalled();
   });
+
+  test('401 se token assente (requireAuth blocca prima del role check)', () => {
+    const req = { headers: {} };
+    const res = mockRes();
+    const next = jest.fn();
+    const middlewares = requireRole(['admin']);
+
+    middlewares[0](req, res, () => middlewares[1](req, res, next));
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(next).not.toHaveBeenCalled();
+  });
 });
