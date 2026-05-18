@@ -1,5 +1,6 @@
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 jest.mock('../testdb/db');
 jest.mock('bcryptjs', () => ({
@@ -9,7 +10,6 @@ jest.mock('bcryptjs', () => ({
 jest.mock('express-rate-limit', () => () => (_req, _res, next) => next());
 jest.mock('../routes/matches', () => require('express').Router());
 
-const bcrypt = require('bcryptjs');
 const pool = require('../testdb/db');
 const app = require('../app');
 
@@ -81,10 +81,12 @@ describe('POST /api/v1/auth/login', () => {
     expect(resEmail.body.error).toBe(resPassword.body.error);
   });
 
-  test('200 login ok — token valido e user senza password_hash', async () => {
-    pool.execute = jest.fn().mockResolvedValue([[
-      { id: 42, username: 'chriss99', email: 'user@example.com', password_hash: 'hashed', role: 'user', level: 0 },
-    ]]);
+  test('200 login ok — accessToken valido, refreshToken presente, user senza password_hash', async () => {
+    pool.execute = jest.fn()
+      .mockResolvedValueOnce([[
+        { id: 42, username: 'chriss99', email: 'user@example.com', password_hash: 'hashed', role: 'user', level: 0 },
+      ]])
+      .mockResolvedValueOnce([{ affectedRows: 1 }]); // INSERT refresh_token
     bcrypt.compare.mockResolvedValue(true);
 
     const res = await request(app)
@@ -92,14 +94,15 @@ describe('POST /api/v1/auth/login', () => {
       .send({ email: 'user@example.com', password: 'SecurePass1!' });
 
     expect(res.status).toBe(200);
-    expect(res.body.token).toBeDefined();
+    expect(res.body.accessToken).toBeDefined();
+    expect(res.body.refreshToken).toBeDefined();
     expect(res.body.user.id).toBe(42);
     expect(res.body.user.username).toBe('chriss99');
     expect(res.body.user.role).toBe('user');
     expect(res.body.user.level).toBe(0);
     expect(res.body.user.password_hash).toBeUndefined();
 
-    const payload = jwt.verify(res.body.token, SECRET);
+    const payload = jwt.verify(res.body.accessToken, SECRET);
     expect(payload.userId).toBe(42);
     expect(payload.role).toBe('user');
   });

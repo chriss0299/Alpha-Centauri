@@ -39,4 +39,15 @@ router.post(
   authController.login
 );
 
+router.post(
+  '/refresh',
+  rateLimiter.write,
+  [
+    body('refreshToken')
+      .notEmpty()
+      .withMessage('Refresh token obbligatorio'),
+  ],
+  authController.refresh
+);
+
 module.exports = router;

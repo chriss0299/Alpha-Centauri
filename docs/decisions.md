@@ -68,6 +68,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-18 Opaque refresh token con rotazione single-use
+
+**Decisione:** Auth usa access token JWT breve (15m) + refresh token opaco long-lived (30d) con rotazione obbligatoria ad ogni uso.
+
+**Motivazione:** Access token da 7d era troppo lungo per essere sicuro: in caso di leak, l'attaccante avrebbe accesso per 7 giorni senza possibilità di revoca (JWT stateless). Il pattern opaque refresh token permette revoca immediata cancellando il record in DB, e la rotazione single-use rileva token reuse (segnale di compromissione).
+
+**Alternative scartate:** JWT sliding window (ri-emette JWT valido prima della scadenza — non revocabile, nessun segnale di reuse), refresh token multi-use senza rotazione (non rileva compromissione).
+
+**Dettaglio implementativo:** Refresh token = `crypto.randomBytes(32).toString('hex')`; in DB si salva solo lo SHA-256 (`token_hash VARCHAR(64)`) nella tabella `refresh_tokens` (FK → `users.id ON DELETE CASCADE`). `POST /api/v1/auth/refresh` cancella il vecchio record e inserisce il nuovo prima di emettere il nuovo access token. Scaduto il refresh token, il client deve ri-autenticarsi con credenziali.
+
+---
+
 ## 2026-05-12 MySQL con phpMyAdmin
 
 **Decisione:** Database relazionale MySQL. Interfaccia admin via phpMyAdmin.
