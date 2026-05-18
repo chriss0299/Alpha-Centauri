@@ -8,4 +8,12 @@ const write = rateLimit({
   message: { error: 'Troppe richieste, riprova tra poco' },
 });
 
-module.exports = { write };
+const auth = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Troppe richieste, riprova tra poco' },
+});
+
+module.exports = { write, auth };

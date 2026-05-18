@@ -68,6 +68,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-18 Due livelli di rate limiting: auth e write
+
+**Decisione:** Il rate limiter espone due configurazioni distinte: `auth` (10 req / 15 min) per gli endpoint di autenticazione e `write` (30 req / min) per le operazioni di scrittura generali.
+
+**Motivazione:** Un singolo limite flat non distingue tra operazioni a rischio diverso. Gli endpoint auth (login, register, google, refresh) sono vettore di brute-force e credential stuffing — richiedono un limite più stretto e una finestra più lunga. Gli endpoint di scrittura live (eventi partita, conferme) hanno un pattern d'uso legittimo ad alta frequenza (inserimento rapido di eventi) e un limite al minuto è più appropriato.
+
+**Alternative scartate:** Limite unico per tutto (troppo permissivo per auth o troppo restrittivo per il live feed), rate limiting per utente autenticato invece che per IP (gli attacchi arrivano prima dell'autenticazione).
+
+**Dettaglio implementativo:** `rateLimiter.auth` → 10/15min; `rateLimiter.write` → 30/min. `server/routes/auth.js` usa `auth`; `server/routes/matches.js` usa `write`. `standardHeaders: true` per conformità RFC 6585.
+
+---
+
 ## 2026-05-18 OAuth Google via ID token verification (lato server)
 
 **Decisione:** Il flow OAuth Google per la PWA usa la verifica lato server dell'ID token (`POST /api/v1/auth/google`) anziché il redirect server-side.
