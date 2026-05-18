@@ -130,3 +130,10 @@ Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
 - `docs/user-stories/` — stories derivate dal PRD (un file per task); generabile con `/user-stories`
+
+## Aggiornamento documenti — obbligatorio al termine di ogni task
+
+Prima del commit/PR, aggiornare:
+- `docs/decisions.md` — se la task introduce una decisione architetturale (nuovo pattern, scelta infrastrutturale, cambio di contratto API, schema DB rilevante)
+- `docs/glossario.md` — se vengono introdotti nuovi termini di dominio o mapping cross-layer
+- `docs/user-stories/<ID>-<slug>.md` — creata all'inizio di ogni task se non esiste già

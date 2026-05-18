@@ -1,7 +1,27 @@
 const { validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const pool = require('../testdb/db');
+
+const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+
+function generateRefreshToken() {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function hashToken(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+async function storeRefreshToken(userId, token) {
+  const hash = hashToken(token);
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  await pool.execute(
+    'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+    [userId, hash, expiresAt]
+  );
+}
 
 async function register(req, res) {
   const errors = validationResult(req);
@@ -27,16 +47,21 @@ async function register(req, res) {
       [username, email, passwordHash]
     );
 
-    const token = jwt.sign(
-      { userId: result.insertId, role: 'user' },
+    const userId = result.insertId;
+    const accessToken = jwt.sign(
+      { userId, role: 'user' },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '15m' }
     );
 
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(userId, refreshToken);
+
     return res.status(201).json({
-      token,
+      accessToken,
+      refreshToken,
       user: {
-        id: result.insertId,
+        id: userId,
         username,
         email,
         role: 'user',
@@ -73,14 +98,18 @@ async function login(req, res) {
       return res.status(401).json({ error: 'Credenziali non valide' });
     }
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
       { userId: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: '15m' }
     );
 
+    const refreshToken = generateRefreshToken();
+    await storeRefreshToken(user.id, refreshToken);
+
     return res.status(200).json({
-      token,
+      accessToken,
+      refreshToken,
       user: {
         id: user.id,
         username: user.username,
@@ -94,4 +123,62 @@ async function login(req, res) {
   }
 }
 
-module.exports = { register, login };
+async function refresh(req, res) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { refreshToken } = req.body;
+
+  try {
+    const tokenHash = hashToken(refreshToken);
+
+    const [rows] = await pool.execute(
+      'SELECT id, user_id, expires_at FROM refresh_tokens WHERE token_hash = ?',
+      [tokenHash]
+    );
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Refresh token non valido' });
+    }
+
+    const record = rows[0];
+    if (new Date(record.expires_at) < new Date()) {
+      await pool.execute('DELETE FROM refresh_tokens WHERE id = ?', [record.id]);
+      return res.status(401).json({ error: 'Refresh token scaduto' });
+    }
+
+    // Rotazione: cancella il vecchio, emette il nuovo
+    await pool.execute('DELETE FROM refresh_tokens WHERE id = ?', [record.id]);
+
+    const [userRows] = await pool.execute(
+      'SELECT id, role FROM users WHERE id = ?',
+      [record.user_id]
+    );
+
+    if (userRows.length === 0) {
+      return res.status(401).json({ error: 'Refresh token non valido' });
+    }
+
+    const { id: userId, role } = userRows[0];
+
+    const newAccessToken = jwt.sign(
+      { userId, role },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    const newRefreshToken = generateRefreshToken();
+    await storeRefreshToken(userId, newRefreshToken);
+
+    return res.status(200).json({
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
+}
+
+module.exports = { register, login, refresh };
