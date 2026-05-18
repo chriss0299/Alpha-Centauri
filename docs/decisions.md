@@ -56,6 +56,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-18 Docker come ambiente di sviluppo locale
+
+**Decisione:** L'ambiente di sviluppo locale è containerizzato via Docker Compose (MySQL, Redis, phpMyAdmin, server Node.js).
+
+**Motivazione:** Elimina il problema "funziona sul mio PC": ogni dev parte con lo stesso stack senza installare MySQL e Redis in locale. Le migrazioni vengono applicate automaticamente al primo avvio tramite `docker-entrypoint-initdb.d`. Il client Nuxt 3 è predisposto ma commentato fino all'inizializzazione dello scaffold.
+
+**Alternative scartate:** Setup manuale per ogni dev (dipendenze di sistema, versioni divergenti), Vagrant (overhead maggiore, più lento da avviare).
+
+**Dettaglio implementativo:** `docker-compose.yml` in root. Server usa `node --watch` per hot-reload senza dipendenze aggiuntive. `JWT_SECRET` proviene dall'`.env` dell'host via `${JWT_SECRET}` — non hardcodato nel compose.
+
+---
+
 ## 2026-05-12 MySQL con phpMyAdmin
 
 **Decisione:** Database relazionale MySQL. Interfaccia admin via phpMyAdmin.
