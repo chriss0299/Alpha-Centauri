@@ -11,7 +11,7 @@ router.get('/', matchController.getMatches);
 router.get('/:matchId', matchController.getMatchById);
 
 // Crea partita (solo Admin/Editor)
-router.post('/', authMiddleware.requireRole(['admin', 'editor']), matchController.createMatch);
+router.post('/', authMiddleware.requireRole(['super_admin', 'editor']), matchController.validateCreateMatch, matchController.createMatch);
 
 // Aggiorna stato partita (PROGRAMMATA → IN_CORSO → TERMINATA → CERTIFICATA)
 router.patch('/:matchId/status', authMiddleware.requireRole(['admin', 'editor', 'arbitro']), matchController.updateMatchStatus);
