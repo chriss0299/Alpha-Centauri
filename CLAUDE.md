@@ -40,10 +40,11 @@ Alpha-Centauri/
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
-│   └── user-stories.md  # Generato da /user-stories — non editare manualmente
+│   └── user-stories/    # Una story per file — generato da /user-stories, non editare manualmente
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
+├── .env.example         # Variabili d'ambiente richieste — copia in .env e compila
 ├── prd.md
 ├── CLAUDE.md
 └── README.md
@@ -75,6 +76,13 @@ La regola del **minuto 1**: gli eventi di gioco sono inseribili solo dopo 60 sec
 Metrica per utente che sale con contributi corretti e scende con inserimenti contestati. Controlla i privilegi anti-spam.
 
 ## Convenzioni di sviluppo
+
+### Setup locale
+
+```bash
+cp .env.example .env   # compila JWT_SECRET, DB_*, REDIS_URL
+cd server && npm install
+```
 
 ### API REST (Express)
 - Prefisso: `/api/v1/`
@@ -121,4 +129,4 @@ NON chiamare per: CRUD semplici, componenti UI, query read-only, config files, b
 Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
-- `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
+- `docs/user-stories/` — stories derivate dal PRD (un file per task); generabile con `/user-stories`
