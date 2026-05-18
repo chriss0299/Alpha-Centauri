@@ -29,13 +29,16 @@ Alpha-Centauri/
 │   ├── stores/          # Pinia
 │   └── public/
 ├── server/              # Node.js + Express API
+│   ├── app.js           # Entry point Express
 │   ├── routes/
 │   ├── controllers/
 │   ├── models/
-│   ├── middleware/
+│   ├── middleware/      # auth.js, rateLimiter.js
+│   ├── testdb/          # Pool mysql2 (db.js)
+│   ├── __tests__/       # Test Jest
 │   └── socket/          # Socket.io handlers
 ├── database/
-│   ├── migrations/
+│   ├── migrations/      # SQL eseguiti in ordine da Docker all'avvio
 │   └── seeds/
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
@@ -44,6 +47,7 @@ Alpha-Centauri/
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
+├── docker-compose.yml   # MySQL 8 + phpMyAdmin + Redis
 ├── .env.example         # Variabili d'ambiente richieste — copia in .env e compila
 ├── prd.md
 ├── CLAUDE.md
@@ -80,9 +84,22 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 ### Setup locale
 
 ```bash
-cp .env.example .env   # compila JWT_SECRET, DB_*, REDIS_URL
+# 1 — Avvia infrastruttura (MySQL 8, phpMyAdmin :8080, Redis :6379)
+docker-compose up -d
+
+# 2 — Variabili d'ambiente (credenziali già precompilate per Docker)
+cp .env.example .env
+# Imposta JWT_SECRET con una stringa lunga e casuale
+
+# 3 — Dipendenze server
 cd server && npm install
+
+# 4 — Avvia server
+node app.js   # oppure: npm run dev (se configurato nodemon)
 ```
+
+> Le migrazioni in `database/migrations/` vengono applicate automaticamente da MySQL all'avvio del container (ordine alfabetico).
+> Test: `cd server && npm test`
 
 ### API REST (Express)
 - Prefisso: `/api/v1/`
