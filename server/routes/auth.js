@@ -6,7 +6,7 @@ const authController = require('../controllers/authController');
 
 router.post(
   '/register',
-  rateLimiter.write,
+  rateLimiter.auth,
   [
     body('username')
       .trim()
@@ -26,7 +26,7 @@ router.post(
 
 router.post(
   '/login',
-  rateLimiter.write,
+  rateLimiter.auth,
   [
     body('email')
       .isEmail()
@@ -41,7 +41,7 @@ router.post(
 
 router.post(
   '/refresh',
-  rateLimiter.write,
+  rateLimiter.auth,
   [
     body('refreshToken')
       .notEmpty()
@@ -52,7 +52,7 @@ router.post(
 
 router.post(
   '/google',
-  rateLimiter.write,
+  rateLimiter.auth,
   [
     body('idToken')
       .notEmpty()
