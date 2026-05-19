@@ -111,3 +111,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 **Motivazione:** Il dominio è altamente relazionale (partite ↔ eventi ↔ utenti ↔ squadre ↔ campionati). Le garanzie ACID sono necessarie per certificazione risultati e audit log. phpMyAdmin per accesso rapido del team senza setup tools aggiuntivi.
 
 **Alternative scartate:** PostgreSQL (ugualmente valido ma MySQL più familiare al team), MongoDB (modello document non adatto a relazioni complesse e transazioni multi-tabella).
+
+---
+
+## 2026-05-19 Nuxt 4 + @vite-pwa/nuxt + TypeScript strict (FE-001)
+
+**Decisione:** Client scaffoldato con Nuxt 4 (minimal template), PWA via `@vite-pwa/nuxt`, TypeScript strict mode abilitato.
+
+**Motivazione:** Nuxt 4 è la versione corrente stabile. `@vite-pwa/nuxt` è il modulo PWA ufficiale per Nuxt 3/4 (il vecchio `@nuxtjs/pwa` è deprecato). TS strict riduce bug su tipi complessi di dominio (stati partita, livelli affidabilità, GDPR flag).
+
+**Workbox — strategia mista:**
+- `NetworkFirst` per `/api/v1/*`: live feed sempre fresco, fallback cache se offline (timeout 5s)
+- `StaleWhileRevalidate` per `/api/v1/(teams|users|championships)/*`: profili semi-statici, staleness 5 min accettabile
+- `CacheFirst` implicito per asset statici precachati (JS, CSS, font, immagini)
+
+**Alternative scartate:** `@nuxtjs/pwa` (solo Nuxt 2), `StaleWhileRevalidate` per tutto (API live restituirebbero dati obsoleti durante partita), JavaScript puro (dominio complesso con troppi tipi impliciti).
