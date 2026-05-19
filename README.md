@@ -4,7 +4,7 @@ PWA mobile-first per il rugby di categoria B e settori giovanili. Permette a tif
 
 ## Stack
 
-- **Frontend** — Nuxt 3 (Vue.js), PWA + Workbox
+- **Frontend** — Nuxt 4 (Vue.js), PWA + Workbox
 - **Backend** — Node.js + Express
 - **Database** — MySQL, gestione via phpMyAdmin
 - **Real-time** — Socket.io
@@ -15,7 +15,7 @@ PWA mobile-first per il rugby di categoria B e settori giovanili. Permette a tif
 
 ```
 Alpha-Centauri/
-├── client/              # Nuxt 3 PWA
+├── client/              # Nuxt 4 PWA
 ├── server/              # Express API
 ├── database/            # Migrations e seeds MySQL
 ├── docs/                # Decisioni architetturali, glossario, user stories
