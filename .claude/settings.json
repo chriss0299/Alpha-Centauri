@@ -9,12 +9,7 @@
       "Bash(git log *)",
       "Bash(git diff *)",
       "Bash(git add *)",
-      "Bash(git branch *)",
-      "Bash(git -C ../Alpha-Centauri-graph pull origin main)",
-      "Bash(git -C ../Alpha-Centauri-graph add .)",
-      "Bash(git -C ../Alpha-Centauri-graph commit *)",
-      "Bash(git -C ../Alpha-Centauri-graph push origin main)",
-      "Bash(cp -r graphify-out/* ../Alpha-Centauri-graph/)"
+      "Bash(git branch *)"
     ]
   },
   "hooks": {
@@ -24,17 +19,6 @@
           {
             "type": "command",
             "command": "echo 'CAVEMAN MODE ACTIVE (full). Drop articles/filler/pleasantries/hedging. Fragments OK. Code/commits/security: write normal. NEVER apply caveman to: UI strings, user-facing error messages, notification text, email templates, or any content that will be displayed in the app.'"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Glob|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "[ -f ../Alpha-Centauri-graph/graph.json ] && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"graphify: Knowledge graph exists in ../Alpha-Centauri-graph/. Read ../Alpha-Centauri-graph/GRAPH_REPORT.md for god nodes and community structure before searching raw files.\"}}' || true"
           }
         ]
       }
