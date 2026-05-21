@@ -52,64 +52,65 @@ Setup completo e protocollo di aggiornamento: [`../CLAUDE.md`](../CLAUDE.md)
 
 ## Prerequisiti
 
-- Node.js 20+
-- MySQL 8+
-- Redis 7+
-- Python 3.10+
-- phpMyAdmin (opzionale, per gestione DB in sviluppo)
+- [Docker Desktop 4+](https://www.docker.com/products/docker-desktop/) ← unico requisito per il setup Docker
+- oppure: Node.js 20+, MySQL 8+, Redis 7+ per setup manuale
 
 ## Avvio in sviluppo
 
-### Backend
+### Con Docker (consigliato)
 
+```bash
+cp .env.example .env          # imposta JWT_SECRET
+docker compose up --build
+```
+
+| Servizio    | URL                        |
+|-------------|----------------------------|
+| API server  | http://localhost:3000      |
+| phpMyAdmin  | http://localhost:8080      |
+| MySQL       | localhost:3306             |
+| Redis       | localhost:6379             |
+
+Le migrazioni SQL vengono applicate automaticamente al primo avvio.
+
+Il client Nuxt 3 va inizializzato prima di decommentare il servizio `client` in `docker-compose.yml`:
+```bash
+cd client && npx nuxi init .
+```
+
+### Setup manuale (senza Docker)
+
+**Backend:**
 ```bash
 cd server
 npm install
-cp .env.example .env   # configura DB, JWT_SECRET, Redis
-npm run dev
+cp ../.env.example ../.env   # configura DB_HOST, JWT_SECRET, REDIS_URL
+node app.js
 ```
 
-### Frontend
-
+**Frontend** (dopo aver inizializzato Nuxt 3):
 ```bash
 cd client
 npm install
 npm run dev
 ```
 
-L'app sarà disponibile su `http://localhost:3000`.
-
-### Database
-
-```bash
-cd database
-npm run migrate        # applica le migrations
-npm run seed           # dati di test
-```
+**Database:** eseguire manualmente i file `.sql` in `database/migrations/` nell'ordine numerico.
 
 ## Variabili d'ambiente
 
-### server/.env
+Copiare `.env.example` in `.env` nella root e compilare:
 
 ```env
-PORT=4000
+JWT_SECRET=stringa-lunga-e-casuale   # obbligatorio
+
+# In locale (default)
 DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=rugbytracker
-DB_USER=root
-DB_PASSWORD=
-JWT_SECRET=
-JWT_EXPIRES_IN=7d
-REDIS_URL=redis://localhost:6379
-OAUTH_GOOGLE_CLIENT_ID=
-OAUTH_GOOGLE_CLIENT_SECRET=
-```
+DB_USER=rugbyuser
+DB_PASSWORD=rugbypass
 
-### client/.env
-
-```env
-NUXT_PUBLIC_API_BASE=http://localhost:4000/api/v1
-NUXT_PUBLIC_SOCKET_URL=http://localhost:4000
+# In Docker: DB_HOST=mysql, REDIS_URL=redis://redis:6379
+# (già configurati in docker-compose.yml — non serve toccarli)
 ```
 
 ## Roadmap sintetica

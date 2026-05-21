@@ -56,6 +56,54 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-18 Docker come ambiente di sviluppo locale
+
+**Decisione:** L'ambiente di sviluppo locale è containerizzato via Docker Compose (MySQL, Redis, phpMyAdmin, server Node.js).
+
+**Motivazione:** Elimina il problema "funziona sul mio PC": ogni dev parte con lo stesso stack senza installare MySQL e Redis in locale. Le migrazioni vengono applicate automaticamente al primo avvio tramite `docker-entrypoint-initdb.d`. Il client Nuxt 3 è predisposto ma commentato fino all'inizializzazione dello scaffold.
+
+**Alternative scartate:** Setup manuale per ogni dev (dipendenze di sistema, versioni divergenti), Vagrant (overhead maggiore, più lento da avviare).
+
+**Dettaglio implementativo:** `docker-compose.yml` in root. Server usa `node --watch` per hot-reload senza dipendenze aggiuntive. `JWT_SECRET` proviene dall'`.env` dell'host via `${JWT_SECRET}` — non hardcodato nel compose.
+
+---
+
+## 2026-05-18 Due livelli di rate limiting: auth e write
+
+**Decisione:** Il rate limiter espone due configurazioni distinte: `auth` (10 req / 15 min) per gli endpoint di autenticazione e `write` (30 req / min) per le operazioni di scrittura generali.
+
+**Motivazione:** Un singolo limite flat non distingue tra operazioni a rischio diverso. Gli endpoint auth (login, register, google, refresh) sono vettore di brute-force e credential stuffing — richiedono un limite più stretto e una finestra più lunga. Gli endpoint di scrittura live (eventi partita, conferme) hanno un pattern d'uso legittimo ad alta frequenza (inserimento rapido di eventi) e un limite al minuto è più appropriato.
+
+**Alternative scartate:** Limite unico per tutto (troppo permissivo per auth o troppo restrittivo per il live feed), rate limiting per utente autenticato invece che per IP (gli attacchi arrivano prima dell'autenticazione).
+
+**Dettaglio implementativo:** `rateLimiter.auth` → 10/15min; `rateLimiter.write` → 30/min. `server/routes/auth.js` usa `auth`; `server/routes/matches.js` usa `write`. `standardHeaders: true` per conformità RFC 6585.
+
+---
+
+## 2026-05-18 OAuth Google via ID token verification (lato server)
+
+**Decisione:** Il flow OAuth Google per la PWA usa la verifica lato server dell'ID token (`POST /api/v1/auth/google`) anziché il redirect server-side.
+
+**Motivazione:** La PWA mobile-first gestisce il sign-in Google nativamente nel client (Google Identity Services SDK). Il client ottiene l'ID token e lo invia al backend per la verifica tramite `google-auth-library`. Questo elimina la necessità di gestire redirect OAuth, sessioni temporanee e callback URL — più semplice e robusto per una PWA/mobile.
+
+**Alternative scartate:** Server-side redirect con Passport.js (richiede sessioni, redirect URL, state parameter — overhead non necessario per una PWA che gestisce il login nativa mente nel client).
+
+**Dettaglio implementativo:** `POST /api/v1/auth/google` → `OAuth2Client.verifyIdToken` → trova o crea utente (lookup per `google_id`, fallback per email, link account se `google_id` è null). Risposta: `{ accessToken, refreshToken, isNewUser }`. `google_id` salvato in `users.google_id VARCHAR(255) NULL UNIQUE` (migrazione 003).
+
+---
+
+## 2026-05-18 Opaque refresh token con rotazione single-use
+
+**Decisione:** Auth usa access token JWT breve (15m) + refresh token opaco long-lived (30d) con rotazione obbligatoria ad ogni uso.
+
+**Motivazione:** Access token da 7d era troppo lungo per essere sicuro: in caso di leak, l'attaccante avrebbe accesso per 7 giorni senza possibilità di revoca (JWT stateless). Il pattern opaque refresh token permette revoca immediata cancellando il record in DB, e la rotazione single-use rileva token reuse (segnale di compromissione).
+
+**Alternative scartate:** JWT sliding window (ri-emette JWT valido prima della scadenza — non revocabile, nessun segnale di reuse), refresh token multi-use senza rotazione (non rileva compromissione).
+
+**Dettaglio implementativo:** Refresh token = `crypto.randomBytes(32).toString('hex')`; in DB si salva solo lo SHA-256 (`token_hash VARCHAR(64)`) nella tabella `refresh_tokens` (FK → `users.id ON DELETE CASCADE`). `POST /api/v1/auth/refresh` cancella il vecchio record e inserisce il nuovo prima di emettere il nuovo access token. Scaduto il refresh token, il client deve ri-autenticarsi con credenziali.
+
+---
+
 ## 2026-05-12 MySQL con phpMyAdmin
 
 **Decisione:** Database relazionale MySQL. Interfaccia admin via phpMyAdmin.
@@ -78,3 +126,15 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 - `CacheFirst` implicito per asset statici precachati (JS, CSS, font, immagini)
 
 **Alternative scartate:** `@nuxtjs/pwa` (solo Nuxt 2), `StaleWhileRevalidate` per tutto (API live restituirebbero dati obsoleti durante partita), JavaScript puro (dominio complesso con troppi tipi impliciti).
+
+---
+
+## 2026-05-21 Layout base: `@nuxt/icon` + `useState` per auth temporaneo (FE-002)
+
+**Decisione:** Icone via `@nuxt/icon` (Iconify). Stato auth in `useState('auth-user')` — da migrare a Pinia in FE-003.
+
+**Motivazione:** `@nuxt/icon` è il modulo icone ufficiale Nuxt 4, zero configurazione, 200k+ icone Iconify disponibili. `useState` Nuxt nativo evita di installare Pinia con uno store auth incompleto — la migrazione a FE-003 è 5 righe.
+
+**Alternative scartate:** SVG inline (manutenzione onerosa), `@heroicons/vue` diretto (meno integrato con Nuxt), Pinia subito (store auth a metà fino a FE-003 — debt peggiore di `useState` esplicito).
+
+**Dettaglio implementativo:** `client/app/composables/useAuthState.ts` espone `user` (useState) e `isAuthenticated` (computed). `AppBottomNav` è auth-aware: voce Profilo → `/profilo` se autenticato, → `/login` se no. Bottom nav visibile solo `< 768px`; footer solo `≥ 768px`.

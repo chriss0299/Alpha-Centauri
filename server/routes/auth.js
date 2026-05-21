@@ -1,0 +1,64 @@
+const express = require('express');
+const { body } = require('express-validator');
+const router = express.Router();
+const rateLimiter = require('../middleware/rateLimiter');
+const authController = require('../controllers/authController');
+
+router.post(
+  '/register',
+  rateLimiter.auth,
+  [
+    body('username')
+      .trim()
+      .isLength({ min: 3, max: 30 })
+      .matches(/^[a-zA-Z0-9_]+$/)
+      .withMessage('Username: 3-30 caratteri alfanumerici o underscore'),
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Email non valida'),
+    body('password')
+      .isLength({ min: 8 })
+      .withMessage('Password: minimo 8 caratteri'),
+  ],
+  authController.register
+);
+
+router.post(
+  '/login',
+  rateLimiter.auth,
+  [
+    body('email')
+      .isEmail()
+      .normalizeEmail()
+      .withMessage('Email non valida'),
+    body('password')
+      .notEmpty()
+      .withMessage('Password obbligatoria'),
+  ],
+  authController.login
+);
+
+router.post(
+  '/refresh',
+  rateLimiter.auth,
+  [
+    body('refreshToken')
+      .notEmpty()
+      .withMessage('Refresh token obbligatorio'),
+  ],
+  authController.refresh
+);
+
+router.post(
+  '/google',
+  rateLimiter.auth,
+  [
+    body('idToken')
+      .notEmpty()
+      .withMessage('ID token Google obbligatorio'),
+  ],
+  authController.googleAuth
+);
+
+module.exports = router;

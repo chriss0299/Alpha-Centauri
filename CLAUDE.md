@@ -40,10 +40,14 @@ Alpha-Centauri/
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
-│   └── user-stories.md  # Generato da /user-stories — non editare manualmente
+│   └── user-stories/    # Una story per file — prefisso determina cartella
+│       ├── backend/     # BE-*
+│       ├── frontend/    # FE-*
+│       └── database/    # DB-*
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
+├── .env.example         # Variabili d'ambiente richieste — copia in .env e compila
 ├── prd.md
 ├── CLAUDE.md
 └── README.md
@@ -76,6 +80,13 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 
 ## Convenzioni di sviluppo
 
+### Setup locale
+
+```bash
+cp .env.example .env   # compila JWT_SECRET, DB_*, REDIS_URL
+cd server && npm install
+```
+
 ### API REST (Express)
 - Prefisso: `/api/v1/`
 - Autenticazione: header `Authorization: Bearer <jwt>`
@@ -93,6 +104,7 @@ Metrica per utente che sale con contributi corretti e scende con inserimenti con
 - Composables in camelCase con prefisso `use` (`useMatchFeed.ts`)
 - Lo stato globale va in Pinia store, non in `provide/inject`
 - Il live feed va aggiornato via Socket.io, non polling
+- **Figma:** https://www.figma.com/design/bVRWy23LoYN5vEoPKGgE5R/progetto-rugby (design in corso — consultare prima di implementare componenti UI)
 
 ### Real-time (Socket.io)
 - Room naming: `match:<match_id>`
@@ -121,4 +133,11 @@ NON chiamare per: CRUD semplici, componenti UI, query read-only, config files, b
 Prima di rispondere a domande sul dominio o sull'architettura, leggi:
 - `docs/decisions.md` — decisioni già prese con motivazione (non rimettere in discussione senza motivo)
 - `docs/glossario.md` — naming canonico tra layer (DB snake_case ↔ BE camelCase ↔ FE PascalCase)
-- `docs/user-stories.md` — stories derivate dal PRD (se esiste); generabile con `/user-stories`
+- `docs/user-stories/` — stories derivate dal PRD (un file per task); generabile con `/user-stories`
+
+## Aggiornamento documenti — obbligatorio al termine di ogni task
+
+Prima del commit/PR, aggiornare:
+- `docs/decisions.md` — se la task introduce una decisione architetturale (nuovo pattern, scelta infrastrutturale, cambio di contratto API, schema DB rilevante)
+- `docs/glossario.md` — se vengono introdotti nuovi termini di dominio o mapping cross-layer
+- `docs/user-stories/<ID>-<slug>.md` — creata all'inizio di ogni task se non esiste già

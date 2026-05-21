@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "@nuxt/icon": "^2.2.2",
     "@vite-pwa/nuxt": "^1.1.1",
     "nuxt": "^4.4.6",
     "vue": "^3.5.34",
