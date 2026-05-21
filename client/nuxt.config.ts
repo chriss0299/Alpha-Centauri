@@ -7,7 +7,14 @@ export default defineNuxtConfig({
     strict: true,
   },
 
-  modules: ['@vite-pwa/nuxt'],
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.NUXT_PUBLIC_API_BASE ?? 'http://localhost:3000/api/v1',
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID ?? '',
+    },
+  },
+
+  modules: ['@vite-pwa/nuxt', '@nuxt/icon'],
 
   pwa: {
     registerType: 'autoUpdate',

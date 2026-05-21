@@ -126,3 +126,15 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 - `CacheFirst` implicito per asset statici precachati (JS, CSS, font, immagini)
 
 **Alternative scartate:** `@nuxtjs/pwa` (solo Nuxt 2), `StaleWhileRevalidate` per tutto (API live restituirebbero dati obsoleti durante partita), JavaScript puro (dominio complesso con troppi tipi impliciti).
+
+---
+
+## 2026-05-21 Layout base: `@nuxt/icon` + `useState` per auth temporaneo (FE-002)
+
+**Decisione:** Icone via `@nuxt/icon` (Iconify). Stato auth in `useState('auth-user')` — da migrare a Pinia in FE-003.
+
+**Motivazione:** `@nuxt/icon` è il modulo icone ufficiale Nuxt 4, zero configurazione, 200k+ icone Iconify disponibili. `useState` Nuxt nativo evita di installare Pinia con uno store auth incompleto — la migrazione a FE-003 è 5 righe.
+
+**Alternative scartate:** SVG inline (manutenzione onerosa), `@heroicons/vue` diretto (meno integrato con Nuxt), Pinia subito (store auth a metà fino a FE-003 — debt peggiore di `useState` esplicito).
+
+**Dettaglio implementativo:** `client/app/composables/useAuthState.ts` espone `user` (useState) e `isAuthenticated` (computed). `AppBottomNav` è auth-aware: voce Profilo → `/profilo` se autenticato, → `/login` se no. Bottom nav visibile solo `< 768px`; footer solo `≥ 768px`.
