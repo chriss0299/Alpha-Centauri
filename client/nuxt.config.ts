@@ -3,6 +3,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
 
+  devServer: {
+    port: 3001,
+  },
+
   typescript: {
     strict: true,
   },
@@ -14,7 +18,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@vite-pwa/nuxt', '@nuxt/icon'],
+  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/icon'],
 
   pwa: {
     registerType: 'autoUpdate',
