@@ -40,7 +40,10 @@ Alpha-Centauri/
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
-│   └── user-stories/    # Una story per file — generato da /user-stories, non editare manualmente
+│   └── user-stories/    # Una story per file — prefisso determina cartella
+│       ├── backend/     # BE-*
+│       ├── frontend/    # FE-*
+│       └── database/    # DB-*
 ├── .claude/
 │   ├── settings.json    # Hook caveman + permessi dev
 │   └── commands/        # Skill del team (/user-stories)
@@ -101,6 +104,7 @@ cd server && npm install
 - Composables in camelCase con prefisso `use` (`useMatchFeed.ts`)
 - Lo stato globale va in Pinia store, non in `provide/inject`
 - Il live feed va aggiornato via Socket.io, non polling
+- **Figma:** https://www.figma.com/design/bVRWy23LoYN5vEoPKGgE5R/progetto-rugby (design in corso — consultare prima di implementare componenti UI)
 
 ### Real-time (Socket.io)
 - Room naming: `match:<match_id>`
