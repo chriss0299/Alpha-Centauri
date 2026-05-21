@@ -1,4 +1,4 @@
-# Metodologie di lavoro — DF-1 (Desire)
+# Metodologie di lavoro — DF-1 (Desirée)
 
 Guida pratica per data analysis e gestione finanziaria del progetto RugbyTracker Community.
 
@@ -88,7 +88,7 @@ Quando i dati lo permettono (≥ 100 utenti), segmentare per:
 
 ```
 REPORT MENSILE — [Mese Anno]
-Redatto da: Desire (DF-1)
+Redatto da: Desirée (DF-1)
 
 ## Spese
 - Totale mese: € X (previsto: € Y, delta: ± € Z)
@@ -149,4 +149,4 @@ Prima dell'attivazione di Socket.io (Fase 2), stimare l'impatto infrastrutturale
 | **Sasha (FE-1)** | Setup analytics | Integrazione tracker su Nuxt |
 | **Laura (DB-1)** | Se servono query aggregate | Dati grezzi per analisi KPI lato DB |
 
-Tutti i file di Desire vivono fuori dal repo (Google Drive / Notion). Se un'analisi diventa documentazione permanente del progetto, Christian decide se includerla in `docs/`.
+Tutti i file di Desirée vivono fuori dal repo (Google Drive / Notion). Se un'analisi diventa documentazione permanente del progetto, Christian decide se includerla in `docs/`.
