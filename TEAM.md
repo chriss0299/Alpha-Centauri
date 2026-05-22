@@ -57,7 +57,7 @@ Ruolo trasversale, non assegnato a un layer specifico.
 
 | ID | Nome | Area di responsabilità |
 |----|------|------------------------|
-| **DF-1** | Desire | Data analysis, gestione spese, reportistica finanziaria del progetto |
+| **DF-1** | Desirée | Data analysis, gestione spese, reportistica finanziaria del progetto |
 
 ---
 
