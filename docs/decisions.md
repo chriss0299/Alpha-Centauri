@@ -104,6 +104,22 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-23 Dataset CSV squadre italiane come riferimento seed
+
+**Decisione:** Il dataset delle squadre italiane per la stagione 2025/26 è mantenuto come CSV in `database/dati csv/squadre_rugby_italia_2025_26.csv` (176 righe), affiancato da documentazione in MD.
+
+**Motivazione:** Avere un CSV versionato permette di popolare la tabella `teams` in modo riproducibile in ogni ambiente (dev, staging, prod) senza dipendere da scraping live o input manuale. Il file MD documenta struttura, copertura e lacune note (Serie C parziale per mancanza dati FIR regionali) così ogni dev conosce i limiti del dataset.
+
+**Struttura colonne:** `livello`, `campionato`, `gruppo`, `girone`, `squadra`, `citta`, `note`.
+
+**Copertura:** Serie A Elite (10 sq.), Serie A (40 sq.), Serie B (50 sq.), Serie C (~74 sq., parziale — mancano Toscana, Sardegna, Sud Italia).
+
+**Alternative scartate:** Alimentare `teams` solo via API utente (nessun dato di base all'avvio), scraping runtime da FIR (fragile, dipendenza esterna, lentezza).
+
+**Note operative:** Quando si scrive lo script di seed `database/seeds/`, importare da questo CSV. Non modificare il CSV senza aggiornare anche la documentazione MD.
+
+---
+
 ## 2026-05-12 MySQL con phpMyAdmin
 
 **Decisione:** Database relazionale MySQL. Interfaccia admin via phpMyAdmin.

@@ -36,7 +36,10 @@ Alpha-Centauri/
 │   └── socket/          # Socket.io handlers
 ├── database/
 │   ├── migrations/
-│   └── seeds/
+│   ├── seeds/
+│   └── dati csv/             # Dataset di riferimento — CSV + documentazione
+│       ├── squadre_rugby_italia_2025_26.csv   # 176 squadre (Serie A Elite → C), stagione 2025/26
+│       └── documentazione_csv_rugby_italia_2025_26.md
 ├── docs/
 │   ├── decisions.md     # Decisioni architetturali con motivazione
 │   ├── glossario.md     # Termini di dominio e mapping naming cross-layer
