@@ -38,7 +38,7 @@ async function register(req, res) {
       [email, username]
     );
     if (rows.length > 0) {
-      return res.status(409).json({ error: 'Email o username già in uso' });
+      return res.status(409).json({ error: 'Se l\'email non è già registrata, riceverai una mail di conferma.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -93,6 +93,11 @@ async function login(req, res) {
     }
 
     const user = rows[0];
+
+    if (!user.password_hash) {
+      return res.status(401).json({ error: 'Account registrato con Google. Accedi tramite Google.' });
+    }
+
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
 
     if (!passwordMatch) {
