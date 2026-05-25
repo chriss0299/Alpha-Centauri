@@ -67,6 +67,7 @@ async function register(req, res) {
         email,
         role: 'user',
         level: 0,
+        auth_method: 'email',
       },
     });
   } catch (err) {
@@ -84,7 +85,7 @@ async function login(req, res) {
 
   try {
     const [rows] = await pool.execute(
-      'SELECT id, username, email, password_hash, role, level FROM users WHERE email = ?',
+      'SELECT id, username, email, password_hash, google_id, role, level FROM users WHERE email = ?',
       [email]
     );
 
@@ -122,6 +123,7 @@ async function login(req, res) {
         email: user.email,
         role: user.role,
         level: user.level,
+        auth_method: 'email',
       },
     });
   } catch (err) {
@@ -255,6 +257,8 @@ async function googleAuth(req, res) {
     const refreshToken = generateRefreshToken();
     await storeRefreshToken(user.id, refreshToken);
 
+    const auth_method = user.google_id && !user.password_hash ? 'google' : 'email'
+
     return res.status(200).json({
       accessToken,
       refreshToken,
@@ -265,6 +269,7 @@ async function googleAuth(req, res) {
         email: user.email,
         role: user.role,
         level: user.level,
+        auth_method,
       },
     });
   } catch (err) {

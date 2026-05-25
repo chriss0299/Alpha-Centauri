@@ -216,13 +216,17 @@ async function handleRegister() {
       method: 'POST',
       body: { username: form.username, email: form.email, password: form.password },
     })
-    await authStore.login(form.email, form.password)
-    await router.push('/')
   } catch (err: unknown) {
-    errorMessage.value = extractError(err) ?? 'Registrazione non riuscita'
-  } finally {
-    loading.value = false
+    const status = (err as { status?: number })?.status
+    // 409 = email già registrata: redirect comunque (anti-enumeration)
+    if (status !== 409) {
+      errorMessage.value = extractError(err) ?? 'Registrazione non riuscita'
+      loading.value = false
+      return
+    }
   }
+  await router.push(`/conferma-email?email=${encodeURIComponent(form.email)}`)
+  loading.value = false
 }
 
 async function handleGoogleCredential(response: { credential: string }) {

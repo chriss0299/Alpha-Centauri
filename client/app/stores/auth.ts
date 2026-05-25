@@ -6,6 +6,7 @@ interface User {
   email: string
   role: string
   level: number
+  auth_method: 'email' | 'google'
 }
 
 interface SessionPayload {

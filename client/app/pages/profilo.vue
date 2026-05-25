@@ -4,8 +4,60 @@
     <!-- Header -->
     <div class="profile-header">
       <h1 class="profile-header__title">Il Mio Profilo</h1>
-      <button class="profile-header__settings" aria-label="Impostazioni">⚙️</button>
+      <button class="profile-header__settings" aria-label="Impostazioni" @click="openEdit">⚙️</button>
     </div>
+
+    <!-- Bottom sheet edit profilo -->
+    <Transition name="sheet">
+      <div v-if="editOpen" class="edit-overlay" @click.self="closeEdit">
+        <div class="edit-sheet">
+          <div class="edit-sheet__handle" />
+          <h2 class="edit-sheet__title">Modifica profilo</h2>
+
+          <form class="edit-form" @submit.prevent="saveProfile">
+            <label class="edit-form__label">Username</label>
+            <input
+              v-model="editForm.username"
+              type="text"
+              class="edit-form__input"
+              minlength="3"
+              maxlength="30"
+              pattern="^[a-zA-Z0-9_]+$"
+              autocomplete="username"
+              required
+            />
+
+            <template v-if="user?.auth_method === 'google'">
+              <label class="edit-form__label">Email</label>
+              <p class="edit-form__email-static">{{ user.email }}</p>
+              <p class="edit-form__google-note">Gestita da Google, non modificabile qui.</p>
+            </template>
+            <template v-else>
+              <label class="edit-form__label">Email</label>
+              <input
+                v-model="editForm.email"
+                type="email"
+                class="edit-form__input"
+                autocomplete="email"
+                required
+              />
+            </template>
+
+            <p v-if="editError" class="edit-form__error" role="alert">{{ editError }}</p>
+            <p v-if="editSuccess" class="edit-form__success" role="status">Profilo aggiornato!</p>
+
+            <div class="edit-form__actions">
+              <button type="button" class="edit-form__btn edit-form__btn--cancel" @click="closeEdit">
+                Annulla
+              </button>
+              <button type="submit" class="edit-form__btn edit-form__btn--save" :disabled="editLoading">
+                {{ editLoading ? 'Salvataggio…' : 'Salva' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Transition>
 
     <!-- Avatar + info -->
     <div class="profile-hero">
@@ -92,6 +144,11 @@
       </div>
     </section>
 
+    <!-- Logout -->
+    <div class="logout-wrap">
+      <button class="logout-btn" @click="authStore.logout()">Disconnetti</button>
+    </div>
+
   </div>
 </template>
 
@@ -99,6 +156,7 @@
 definePageMeta({ middleware: 'auth' })
 
 const authStore = useAuthStore()
+const { public: { apiBase } } = useRuntimeConfig()
 const user = computed(() => authStore.user)
 
 const LEVEL_LABELS = ['Spettatore', 'Tifoso', 'Cronista', 'Redattore', 'Verificatore']
@@ -109,6 +167,68 @@ const initials = computed(() => {
   const name = user.value?.username ?? ''
   return name.slice(0, 2).toUpperCase() || '?'
 })
+
+// Edit profilo bottom sheet
+const editOpen = ref(false)
+const editLoading = ref(false)
+const editError = ref('')
+const editSuccess = ref(false)
+const editForm = reactive({ username: '', email: '' })
+
+function openEdit() {
+  editForm.username = user.value?.username ?? ''
+  editForm.email = user.value?.email ?? ''
+  editError.value = ''
+  editSuccess.value = false
+  editOpen.value = true
+}
+
+function closeEdit() {
+  editOpen.value = false
+}
+
+async function patchUser() {
+  return $fetch<{ id: string; username: string; email: string }>(`${apiBase}/users/${user.value?.id}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    body: {
+      username: editForm.username,
+      ...(user.value?.auth_method !== 'google' && { email: editForm.email }),
+    },
+  })
+}
+
+async function saveProfile() {
+  editError.value = ''
+  editSuccess.value = false
+  editLoading.value = true
+  try {
+    let updated: Awaited<ReturnType<typeof patchUser>>
+    try {
+      updated = await patchUser()
+    } catch (err: unknown) {
+      // Token scaduto: prova refresh e riprova una volta
+      const status = (err as { status?: number })?.status
+      if (status === 401) {
+        const ok = await authStore.tryRefresh()
+        if (!ok) { editError.value = 'Sessione scaduta. Effettua di nuovo l\'accesso.'; return }
+        updated = await patchUser()
+      } else {
+        throw err
+      }
+    }
+    const merged = { ...authStore.user!, ...updated }
+    authStore.user = merged
+    localStorage.setItem('rugby_user', JSON.stringify(merged))
+    editSuccess.value = true
+    setTimeout(closeEdit, 1200)
+  } catch (err: unknown) {
+    const data = (err as { data?: { error?: string } })?.data
+    editError.value = data?.error ?? 'Errore durante il salvataggio'
+  } finally {
+    editLoading.value = false
+  }
+}
 
 // Placeholder — sostituire con dati reali quando BE espone gli endpoint
 const badges = [
@@ -447,5 +567,169 @@ const following = [
   font-weight: 500;
   color: #9e9e9e;
   white-space: nowrap;
+}
+
+/* Logout */
+.logout-wrap {
+  padding: 8px 16px 24px;
+}
+
+.logout-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid #e55335;
+  background: none;
+  color: #e55335;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.logout-btn:hover {
+  background-color: rgba(229, 83, 53, 0.08);
+}
+
+/* Edit bottom sheet */
+.edit-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+}
+
+.edit-sheet {
+  width: 100%;
+  background-color: #1e1e1e;
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 40px;
+}
+
+.edit-sheet__handle {
+  width: 36px;
+  height: 4px;
+  background-color: #444;
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.edit-sheet__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 20px;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-form__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.edit-form__input {
+  height: 48px;
+  border-radius: 12px;
+  border: 1.5px solid #333;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  font-size: 15px;
+  padding: 0 14px;
+  outline: none;
+  transition: border-color 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-form__input:focus {
+  border-color: #52b788;
+}
+
+.edit-form__email-static {
+  font-size: 15px;
+  color: #ffffff;
+  margin: 0;
+  padding: 0 2px;
+}
+
+.edit-form__google-note {
+  font-size: 11px;
+  color: #9e9e9e;
+  margin: 0;
+}
+
+.edit-form__error {
+  font-size: 12px;
+  color: #e55335;
+  margin: 0;
+}
+
+.edit-form__success {
+  font-size: 12px;
+  color: #52b788;
+  margin: 0;
+}
+
+.edit-form__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.edit-form__btn {
+  flex: 1;
+  height: 48px;
+  border-radius: 12px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.edit-form__btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.edit-form__btn--cancel {
+  background-color: #2a2a2a;
+  color: #9e9e9e;
+}
+
+.edit-form__btn--save {
+  background-color: #52b788;
+  color: #ffffff;
+}
+
+/* Transizione sheet */
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.sheet-enter-active .edit-sheet,
+.sheet-leave-active .edit-sheet {
+  transition: transform 0.25s ease;
+}
+
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+
+.sheet-enter-from .edit-sheet,
+.sheet-leave-to .edit-sheet {
+  transform: translateY(100%);
 }
 </style>
