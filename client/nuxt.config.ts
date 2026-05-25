@@ -1,10 +1,27 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
+  css: ['~/assets/css/global.css'],
   devtools: { enabled: true },
 
   devServer: {
     port: 3001,
+  },
+
+  vite: {
+    server: {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
+    },
+  },
+
+  routeRules: {
+    '/**': {
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      },
+    },
   },
 
   typescript: {

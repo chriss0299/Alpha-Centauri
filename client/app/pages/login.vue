@@ -1,57 +1,82 @@
 <template>
   <div class="login-page">
-    <div class="login-card">
-      <h1 class="login-card__title">RugbyTracker</h1>
-      <p class="login-card__subtitle">Accedi per seguire le partite in diretta</p>
+    <!-- Sfondo stadio -->
+    <div class="login-page__bg" aria-hidden="true">
+      <img src="/images/login-bg.jpg" alt="" class="login-page__bg-img" />
+      <div class="login-page__bg-overlay" />
+    </div>
 
-      <form class="login-form" @submit.prevent="submitLogin">
-        <div class="login-form__field">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            autocomplete="email"
-            placeholder="la-tua@email.com"
-            :disabled="loading"
-            required
-          />
-        </div>
-
-        <div class="login-form__field">
-          <label for="password">Password</label>
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            autocomplete="current-password"
-            placeholder="••••••••"
-            :disabled="loading"
-            required
-          />
-        </div>
-
-        <p v-if="errorMessage" class="login-form__error" role="alert">
-          {{ errorMessage }}
-        </p>
-
-        <button type="submit" class="btn btn--primary" :disabled="loading">
-          <span v-if="loading">Accesso in corso…</span>
-          <span v-else>Accedi</span>
-        </button>
-      </form>
-
-      <div class="login-separator">
-        <span>oppure</span>
+    <!-- Contenuto -->
+    <div class="login-page__content">
+      <div class="login-page__header">
+        <h1 class="login-page__title">Accedi</h1>
+        <p class="login-page__subtitle">Il rugby di categoria al tuo polso</p>
       </div>
 
-      <div id="google-signin-btn" class="login-google" />
+      <div class="login-page__actions">
+        <!-- Pulsante Google custom → prompt() -->
+        <button class="gsi-material-button" :disabled="loading" @click="googleSignIn">
+          <div class="gsi-material-button-state" />
+          <div class="gsi-material-button-content-wrapper">
+            <div class="gsi-material-button-icon">
+              <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="display: block;">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                <path fill="none" d="M0 0h48v48H0z" />
+              </svg>
+            </div>
+            <span class="gsi-material-button-contents">Accedi con Google</span>
+          </div>
+        </button>
 
-      <p class="login-card__register">
+        <p class="login-page__divider">— oppure accedi con mail —</p>
+
+        <!-- Form email/password -->
+        <form class="login-form" @submit.prevent="handleEmailLogin">
+          <input
+            v-model="emailForm.email"
+            type="email"
+            class="login-form__input"
+            placeholder="Email"
+            autocomplete="email"
+            required
+          />
+          <input
+            v-model="emailForm.password"
+            type="password"
+            class="login-form__input"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="submit" class="btn btn--email" :disabled="loading">
+            {{ loading ? 'Accesso in corso…' : 'Accedi' }}
+          </button>
+          <p class="login-form__forgot">
+            Hai dimenticato la tua password?
+            <NuxtLink to="/recupera-password" class="login-form__forgot-link">Recupera</NuxtLink>
+          </p>
+        </form>
+      </div>
+
+      <p v-if="errorMessage" class="login-page__error" role="alert">
+        {{ errorMessage }}
+      </p>
+
+      <p class="login-page__switch">
         Non hai un account?
-        <NuxtLink to="/registrati">Registrati</NuxtLink>
+        <NuxtLink to="/registrati" class="login-page__switch-link">Registrati</NuxtLink>
       </p>
     </div>
+
+    <!-- Footer legale -->
+    <p class="login-page__legal">
+      Continuando accetti i <a href="#" class="login-page__legal-link">Termini di servizio</a>
+      e la <a href="#" class="login-page__legal-link">Privacy Policy</a>
+    </p>
+
   </div>
 </template>
 
@@ -59,28 +84,20 @@
 definePageMeta({ layout: false })
 
 useHead({
-  script: [{ src: 'https://accounts.google.com/gsi/client', async: true, defer: true }],
+  link: [
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Teko:wght@700&family=Quantico:wght@400;700&display=swap',
+    },
+  ],
 })
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-const form = reactive({ email: '', password: '' })
 const loading = ref(false)
 const errorMessage = ref('')
-
-async function submitLogin() {
-  errorMessage.value = ''
-  loading.value = true
-  try {
-    await authStore.login(form.email, form.password)
-    await router.push('/')
-  } catch (err: unknown) {
-    errorMessage.value = extractError(err) ?? 'Credenziali non valide'
-  } finally {
-    loading.value = false
-  }
-}
+const emailForm = reactive({ email: '', password: '' })
 
 function extractError(err: unknown): string | null {
   if (err && typeof err === 'object' && 'data' in err) {
@@ -90,26 +107,18 @@ function extractError(err: unknown): string | null {
   return null
 }
 
-// Inizializza Google Sign-In dopo che lo script è caricato
-onMounted(() => {
-  const { googleClientId } = useRuntimeConfig().public
-  if (!googleClientId) return
-
-  const waitForGoogle = setInterval(() => {
-    if (!window.google?.accounts?.id) return
-    clearInterval(waitForGoogle)
-
-    window.google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: handleGoogleCredential,
-    })
-
-    window.google.accounts.id.renderButton(
-      document.getElementById('google-signin-btn')!,
-      { theme: 'filled_black', size: 'large', width: 320, text: 'signin_with' }
-    )
-  }, 100)
-})
+async function handleEmailLogin() {
+  errorMessage.value = ''
+  loading.value = true
+  try {
+    await authStore.login(emailForm.email, emailForm.password)
+    await router.push('/')
+  } catch (err: unknown) {
+    errorMessage.value = extractError(err) ?? 'Email o password non corretti'
+  } finally {
+    loading.value = false
+  }
+}
 
 async function handleGoogleCredential(response: { credential: string }) {
   errorMessage.value = ''
@@ -124,111 +133,130 @@ async function handleGoogleCredential(response: { credential: string }) {
   }
 }
 
-// Tipi per la Google Identity Services API
-declare global {
-  interface Window {
-    google: {
-      accounts: {
-        id: {
-          initialize: (config: object) => void
-          renderButton: (element: HTMLElement, config: object) => void
-        }
-      }
+function googleSignIn() {
+  const { googleClientId } = useRuntimeConfig().public
+  const nonce = Math.random().toString(36).substring(2)
+  const redirectUri = encodeURIComponent(`${window.location.origin}/auth/google/callback`)
+  const url =
+    `https://accounts.google.com/o/oauth2/v2/auth` +
+    `?client_id=${googleClientId}` +
+    `&redirect_uri=${redirectUri}` +
+    `&response_type=id_token` +
+    `&scope=openid%20email%20profile` +
+    `&nonce=${nonce}`
+
+  const popup = window.open(url, 'google_auth', 'width=500,height=600,left=200,top=100')
+  if (!popup) {
+    errorMessage.value = 'Popup bloccato dal browser. Consenti i popup per questo sito.'
+    return
+  }
+
+  const bc = new BroadcastChannel('google_auth')
+  bc.onmessage = async (event: MessageEvent) => {
+    bc.close()
+    if (event.data?.type === 'google_auth') {
+      await handleGoogleCredential({ credential: event.data.idToken })
     }
   }
 }
+
 </script>
 
 <style scoped>
 .login-page {
+  position: relative;
   min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #0f0f1a;
-  padding: 1rem;
-}
-
-.login-card {
   width: 100%;
-  max-width: 360px;
-  background-color: #1a1a2e;
-  border-radius: 12px;
-  padding: 2rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #181b27;
+  overflow: hidden;
+  font-family: 'Quantico', sans-serif;
 }
 
-.login-card__title {
-  font-size: 1.5rem;
+/* Sfondo */
+.login-page__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.login-page__bg-img {
+  position: absolute;
+  width: 201%;
+  height: 112%;
+  top: -1.7%;
+  left: -51%;
+  object-fit: cover;
+  opacity: 0.82;
+}
+
+.login-page__bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(24, 27, 39, 0.1) 0%,
+    rgba(24, 27, 39, 0.5) 50%,
+    rgba(24, 27, 39, 0.85) 100%
+  );
+}
+
+/* Contenuto */
+.login-page__content {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px 80px;
+}
+
+.login-page__header {
+  margin-bottom: 100px;
+}
+
+.login-page__title {
+  font-family: 'Teko', sans-serif;
   font-weight: 700;
-  color: #f0f0f0;
+  font-size: 48px;
+  color: #ffffff;
+  line-height: 1;
   text-align: center;
-  margin: 0 0 0.25rem;
+  margin: 0 0 24px;
 }
 
-.login-card__subtitle {
-  font-size: 0.875rem;
-  color: rgba(240, 240, 240, 0.6);
+.login-page__subtitle {
+  font-family: 'Quantico', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
   text-align: center;
-  margin: 0 0 1.75rem;
-}
-
-.login-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.login-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.login-form__field label {
-  font-size: 0.8125rem;
-  color: rgba(240, 240, 240, 0.75);
-  font-weight: 500;
-}
-
-.login-form__field input {
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  padding: 0.625rem 0.75rem;
-  color: #f0f0f0;
-  font-size: 1rem;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-.login-form__field input:focus {
-  border-color: rgba(255, 255, 255, 0.35);
-}
-
-.login-form__field input::placeholder {
-  color: rgba(240, 240, 240, 0.3);
-}
-
-.login-form__field input:disabled {
-  opacity: 0.5;
-}
-
-.login-form__error {
-  font-size: 0.8125rem;
-  color: #e63946;
   margin: 0;
 }
 
-.btn {
-  border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s;
+/* Pulsanti */
+.login-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 480px;
   width: 100%;
+  margin: 0 auto;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Quantico', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s;
+  gap: 12px;
 }
 
 .btn:disabled {
@@ -236,51 +264,172 @@ declare global {
   cursor: default;
 }
 
-.btn--primary {
-  background-color: #e63946;
-  color: #fff;
-}
-
-.btn--primary:hover:not(:disabled) {
+.btn:not(:disabled):hover {
   opacity: 0.9;
 }
 
-.login-separator {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
-  color: rgba(240, 240, 240, 0.35);
-  font-size: 0.8125rem;
-}
-
-.login-separator::before,
-.login-separator::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.login-google {
-  display: flex;
-  justify-content: center;
-}
-
-.login-card__register {
+.gsi-material-button {
+  user-select: none;
+  background-color: #f2f2f2;
+  border: none;
+  border-radius: 14px;
+  box-sizing: border-box;
+  color: #1f1f1f;
+  cursor: pointer;
+  font-family: 'Roboto', arial, sans-serif;
+  font-size: 14px;
+  height: 52px;
+  letter-spacing: 0.25px;
+  outline: none;
+  overflow: hidden;
+  padding: 0 16px;
+  position: relative;
   text-align: center;
-  font-size: 0.875rem;
-  color: rgba(240, 240, 240, 0.55);
-  margin: 1.5rem 0 0;
+  transition: background-color 0.218s, box-shadow 0.218s;
+  white-space: nowrap;
+  width: 100%;
 }
 
-.login-card__register a {
-  color: #f0f0f0;
-  font-weight: 600;
+.gsi-material-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gsi-material-button:not(:disabled):hover {
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+}
+
+.gsi-material-button-state {
+  transition: opacity 0.218s;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.gsi-material-button-content-wrapper {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+}
+
+.gsi-material-button-icon {
+  height: 20px;
+  min-width: 20px;
+  width: 20px;
+}
+
+.gsi-material-button-contents {
+  font-family: 'Roboto', arial, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.btn--email {
+  background-color: #0f3460;
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form__input {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-family: 'Quantico', sans-serif;
+  font-size: 15px;
+  padding: 0 16px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.login-form__input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.login-form__input:focus {
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.login-form__forgot {
+  font-family: 'Quantico', sans-serif;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.login-form__forgot-link {
+  font-weight: 700;
+  color: #f59e0b;
   text-decoration: none;
 }
 
-.login-card__register a:hover {
+/* Separatore */
+.login-page__divider {
+  font-family: 'Quantico', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin: 4px 0;
+}
+
+/* Errore */
+.login-page__error {
+  font-size: 0.8125rem;
+  color: #e63946;
+  text-align: center;
+  margin: 12px 0 0;
+}
+
+/* Link registrazione */
+.login-page__switch {
+  font-family: 'Quantico', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+  margin: 20px 0 32px;
+}
+
+.login-page__switch-link {
+  font-weight: 700;
+  color: #f59e0b;
+  text-decoration: none;
+}
+
+/* Footer legale */
+.login-page__legal {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f59e0b;
+  text-align: center;
+  padding: 0 45px 32px;
+  line-height: 16px;
+}
+
+.login-page__legal-link {
+  color: #f59e0b;
   text-decoration: underline;
 }
+
 </style>
