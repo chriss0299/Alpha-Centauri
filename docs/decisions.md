@@ -145,6 +145,20 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-28 Ambiente E2E full-stack con Cypress su Docker isolato (TEST-001)
+
+**Decisione:** I test E2E girano su uno stack Docker dedicato (`docker-compose.test.yml`) parallelo al dev, con porte distinte (MySQL 3309, Redis 6380, server 3002, Nuxt 3003). Il driver è Cypress, installato come devDependency del client.
+
+**Motivazione:** I test unit BE (con mock MySQL) e i test FE assenti non coprono il flusso reale Nuxt → API → DB → Redis. Senza E2E, regressioni cross-layer (es. CORS, JWT, rate limiter, regola minuto 1) emergono solo in manuale. Stack isolato evita di sporcare il DB di sviluppo e rende i test deterministici (DB ricreato da migrations + seed ad ogni run). Cypress scelto per DX visiva (debug interattivo via `cy:open`) e maturità sull'ecosistema Vue/Nuxt — Playwright sarebbe stato alternativa valida ma il team conosce meglio Cypress.
+
+**Alternative scartate:** Test E2E solo API senza browser (perderebbe la copertura dei flussi UI come auth, redirect, localStorage); schema test sullo stesso MySQL dev (rischio inquinamento e race con dev attivi); SQLite in-memory (diverge da MySQL prod su regole come ENUM, ON UPDATE TIMESTAMP, collation utf8mb4).
+
+**Dettaglio implementativo:** `docker-compose.test.yml` monta `database/migrations` + `database/seeds/test` come `docker-entrypoint-initdb.d`. Seed `001_e2e_users.sql` crea due utenti (`e2e@test.local` user, `admin@test.local` superadmin) con password `E2EPass123!` (bcrypt cost 12). `npm run test:e2e` in `client/` orchestra il ciclo: up stack → `wait-on` healthcheck `/api/v1/health/redis` + Nuxt 3003 → `cypress run` → down con `-v` (rimuove volumi). Cypress config: `baseUrl: http://localhost:3003`, `Cypress.env('apiBaseUrl')` per chiamate API dirette. Custom command `cy.loginByApi()` salta la UI per setup veloce di test che richiedono utente autenticato.
+
+**Comportamento su fallimento:** lo script `test:e2e` usa `&&` lineare — se Cypress fallisce, `e2e:down` non parte e lo stack resta su. Comportamento desiderato per debugging (i container restano per ispezione). Cleanup manuale: `npm run e2e:down`.
+
+---
+
 ## 2026-05-28 Client Redis condiviso con connessione graceful (BE-014)
 
 **Decisione:** Il backend espone un'unica istanza singleton del client `redis` (node-redis v4) tramite `server/redis.js`. La connessione viene tentata al boot prima di `app.listen` ma un fallimento iniziale non impedisce l'avvio del server.

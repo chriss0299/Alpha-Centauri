@@ -66,6 +66,35 @@ docker compose down   # ferma backend + DB + Redis
 | `.env` (root) | Server Docker — JWT_SECRET, DB_*, REDIS_URL, GOOGLE_CLIENT_ID |
 | `client/.env` | Nuxt — NUXT_PUBLIC_API_BASE, NUXT_PUBLIC_GOOGLE_CLIENT_ID |
 
+## Test E2E
+
+Stack Docker isolato dal dev (porte 3309/6380/3002/3003) con Cypress come driver.
+
+**Lancio completo (CI-style):**
+```bash
+cd client
+npm run test:e2e
+# → up stack test, wait readiness, cypress run headless, down + cleanup volumi
+```
+
+**Modalità interattiva (debug):**
+```bash
+cd client
+npm run test:e2e:open
+# → up stack, apre Cypress GUI. Spegni manualmente con: npm run e2e:down
+```
+
+**Cleanup manuale (se i test sono falliti):**
+```bash
+cd client && npm run e2e:down
+```
+
+**Utente seed disponibile:**
+- email: `e2e@test.local` / `admin@test.local`
+- password: `E2EPass123!`
+
+Dettagli implementativi in `docs/decisions.md` (TEST-001) e nella user story `docs/user-stories/test/TEST-001-e2e-cypress-setup.md`.
+
 ## graphify (knowledge graph del progetto)
 
 Setup e protocollo completo: [`../CLAUDE.md`](../CLAUDE.md).
