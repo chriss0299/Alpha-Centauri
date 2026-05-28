@@ -60,3 +60,6 @@ Ruolo premium assegnato a chi gestisce la pagina ufficiale di una squadra. Può 
 
 ### Audit log
 Registro immutabile di ogni modifica a eventi di partite `CERTIFICATE`. Contiene: chi ha modificato, cosa, quando, valore precedente e nuovo. Obbligatorio per tracciabilità ufficiale.
+
+### Client Redis (singleton)
+Istanza condivisa del client `redis` (node-redis v4) esposta da `server/redis.js`. Tutti i moduli che usano Redis (futuro: cache, rate limiter cross-istanza, adapter Socket.io) la importano da qui anziché crearne una nuova. Stato: `client.isReady` indica connessione attiva. Healthcheck: `GET /api/v1/health/redis`.
