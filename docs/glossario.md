@@ -64,8 +64,8 @@ Registro immutabile di ogni modifica a eventi di partite `CERTIFICATE`. Contiene
 ### Stack E2E
 Ambiente Docker dedicato ai test end-to-end full-stack, isolato da quello di sviluppo. Composto da `mysql-test` (porta 3309), `redis-test` (6380), `server-test` (3002), `client-test` (3003). Orchestrazione via `docker-compose.test.yml`. Lanciato da `npm run test:e2e` (in `client/`). DB pulito ad ogni run grazie a `docker compose down -v`.
 
-### Cypress
-Driver per i test E2E, installato come devDependency in `client/`. Lavora contro lo Stack E2E: visita pagine Nuxt sul port 3003 e chiama l'API sul 3002. Custom command `cy.loginByApi()` esegue login via API e popola `localStorage` saltando la UI (utile per test che hanno bisogno di un utente autenticato come precondizione).
+### Playwright
+Driver E2E ufficiale del progetto, installato come devDependency in `client/`. Sostituisce Cypress (vedi TEST-002). Lavora contro lo Stack E2E: visita pagine Nuxt sul port 3003 e chiama l'API sul 3002. Config: `client/playwright.config.ts`, test in `client/e2e/*.spec.ts`. Trace viewer integrato per debugging: `npx playwright show-trace <zip>`.
 
 ### Client Redis (singleton)
 Istanza condivisa del client `redis` (node-redis v4) esposta da `server/redis.js`. Tutti i moduli che usano Redis (futuro: cache, rate limiter cross-istanza, adapter Socket.io) la importano da qui anziché crearne una nuova. Stato: `client.isReady` indica connessione attiva. Healthcheck: `GET /api/v1/health/redis`.

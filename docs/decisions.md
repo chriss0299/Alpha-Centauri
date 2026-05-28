@@ -145,7 +145,26 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
-## 2026-05-28 Ambiente E2E full-stack con Cypress su Docker isolato (TEST-001)
+## 2026-05-28 Migrazione driver E2E da Cypress a Playwright (TEST-002)
+
+**Decisione:** Il driver E2E è Playwright (`@playwright/test`), sostituisce Cypress introdotto in TEST-001.
+
+**Motivazione:** Cypress 15.x / 13.x risultava inutilizzabile su Windows Enterprise: il binary `Cypress.exe` scaricato veniva intercettato/sostituito (probabile EDR) e rispondeva come Node.js, fallendo lo smoke-test di avvio. Workaround tentati (clear cache, reinstall, cache custom, downgrade) tutti senza successo. Playwright (Microsoft) gira sullo stesso ambiente senza interferenze, ha auto-wait nativo migliore, parallel runs out-of-the-box e trace viewer integrato.
+
+**Bug collaterali fissati nella stessa task:**
+- `docker-compose.test.yml`: mapping porta Nuxt corretto a `3003:3001` (Nuxt config forza `devServer.port=3001`).
+- Mount migrations/seeds: MySQL ignora sottodirectory in `docker-entrypoint-initdb.d`. Soluzione: bind mount dei file singoli con prefisso ordinante (`01_001_users.sql`, `02_001_e2e_users.sql`, ...).
+- CORS: `server/app.js` ora legge `ALLOWED_ORIGINS` da env (CSV); default per dev invariato. Compose test imposta `ALLOWED_ORIGINS=http://localhost:3003`.
+
+**Dettaglio implementativo:** `client/playwright.config.ts` con `baseURL=http://localhost:3003`, reporter `list`, screenshot on failure, trace retain-on-failure. Test in `client/e2e/*.spec.ts`. 4 smoke test passano in ~5s. `npm run test:e2e` riutilizza `e2e:up` / `e2e:wait` / `e2e:down` scripts di TEST-001, sostituendo solo `cy:run` con `pw:run`. Trick: submit del form login con `input[type="password"].press('Enter')` invece di `button.click()` (workaround per problema timing nel template `login.vue` da indagare).
+
+---
+
+## 2026-05-28 Ambiente E2E full-stack con Cypress su Docker isolato (TEST-001 — superato da TEST-002)
+
+> ⚠️ Driver Cypress sostituito da Playwright in TEST-002 a causa di incompatibilità Windows Enterprise. Mantenuto per traccia storica della decisione iniziale.
+
+
 
 **Decisione:** I test E2E girano su uno stack Docker dedicato (`docker-compose.test.yml`) parallelo al dev, con porte distinte (MySQL 3309, Redis 6380, server 3002, Nuxt 3003). Il driver è Cypress, installato come devDependency del client.
 
