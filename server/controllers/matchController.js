@@ -203,8 +203,73 @@ function updateMatchStatus(req, res) {
   res.status(501).json({ error: 'Not implemented' });
 }
 
-function addMatchEvent(req, res) {
-  res.status(501).json({ error: 'Not implemented' });
+const VALID_EVENT_TYPES = [
+  'meta', 'trasformazione', 'calcio_punizione', 'drop_goal', 'meta_punizione',
+  'cartellino_giallo', 'cartellino_rosso', 'penalty_concesso',
+  'inizio_primo_tempo', 'fine_primo_tempo', 'inizio_secondo_tempo',
+  'fine_partita', 'sostituzione', 'infortunio',
+];
+
+async function addMatchEvent(req, res) {
+  const { matchId } = req.params;
+  const { event_type, minute, team_id, player_id, description } = req.body;
+  const created_by = req.user.userId;
+  const errors = [];
+
+  if (!event_type) errors.push('event_type obbligatorio');
+  else if (!VALID_EVENT_TYPES.includes(event_type)) errors.push(`event_type non valido. Valori ammessi: ${VALID_EVENT_TYPES.join(', ')}`);
+  if (minute === undefined || minute === null) errors.push('minute obbligatorio');
+  else if (!Number.isInteger(Number(minute)) || Number(minute) < 1) errors.push('minute deve essere un intero ≥ 1');
+  if (!team_id) errors.push('team_id obbligatorio');
+
+  if (errors.length > 0) {
+    return res.status(422).json({ errors });
+  }
+
+  try {
+    const [[match]] = await db.query(
+      'SELECT id, status, started_at FROM matches WHERE id = ?',
+      [matchId]
+    );
+
+    if (!match) {
+      return res.status(404).json({ error: 'Partita non trovata' });
+    }
+
+    if (match.status !== 'IN_CORSO') {
+      return res.status(422).json({ errors: ['Gli eventi possono essere inseriti solo su partite IN_CORSO'] });
+    }
+
+    const elapsedSeconds = (Date.now() - new Date(match.started_at).getTime()) / 1000;
+    if (elapsedSeconds < 60) {
+      return res.status(422).json({ errors: ['Regola del minuto 1: attendere 60 secondi dall\'inizio prima di inserire eventi'] });
+    }
+
+    const id = crypto.randomUUID();
+    const now = new Date();
+
+    await db.query(
+      `INSERT INTO match_events (id, match_id, event_type, minute, team_id, player_id, description, reliability, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'community', ?, ?)`,
+      [id, matchId, event_type, Number(minute), team_id, player_id || null, description || null, created_by, now]
+    );
+
+    return res.status(201).json({
+      id,
+      matchId,
+      eventType: event_type,
+      minute: Number(minute),
+      teamId: team_id,
+      playerId: player_id || null,
+      description: description || null,
+      reliability: 'community',
+      createdBy: created_by,
+      createdAt: now,
+    });
+  } catch (err) {
+    console.error('addMatchEvent error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 function confirmEvent(req, res) {
