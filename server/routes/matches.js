@@ -16,6 +16,9 @@ router.post('/', authMiddleware.requireRole(['super_admin', 'editor']), matchCon
 // Aggiorna stato partita (PROGRAMMATA → IN_CORSO → TERMINATA → CERTIFICATA)
 router.patch('/:matchId/status', authMiddleware.requireRole(['admin', 'editor', 'arbitro']), matchController.updateMatchStatus);
 
+// Lista eventi feed (pubblica)
+router.get('/:matchId/events', matchController.getMatchEvents);
+
 // Aggiunge evento live (utenti autenticati, dopo il minuto 1)
 router.post('/:matchId/events', authMiddleware.requireAuth, rateLimiter.write, matchController.addMatchEvent);
 
