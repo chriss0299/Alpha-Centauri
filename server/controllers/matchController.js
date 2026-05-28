@@ -199,8 +199,75 @@ async function getMatchById(req, res) {
   }
 }
 
-function updateMatchStatus(req, res) {
-  res.status(501).json({ error: 'Not implemented' });
+const VALID_TRANSITIONS = {
+  PROGRAMMATA: 'IN_CORSO',
+  IN_CORSO: 'TERMINATA',
+  TERMINATA: 'CERTIFICATA',
+};
+
+async function updateMatchStatus(req, res) {
+  const { matchId } = req.params;
+  const { new_status } = req.body;
+  const updated_by = req.user.userId;
+
+  if (!new_status) {
+    return res.status(422).json({ errors: ['new_status obbligatorio'] });
+  }
+
+  try {
+    const [[match]] = await db.query(
+      'SELECT id, status, started_at FROM matches WHERE id = ?',
+      [matchId]
+    );
+
+    if (!match) {
+      return res.status(404).json({ error: 'Partita non trovata' });
+    }
+
+    if (match.status === new_status) {
+      return res.status(422).json({ errors: [`La partita è già in stato ${new_status}`] });
+    }
+
+    const expectedNext = VALID_TRANSITIONS[match.status];
+    if (!expectedNext || expectedNext !== new_status) {
+      return res.status(422).json({
+        errors: [`Transizione non valida: ${match.status} → ${new_status}. Transizione attesa: ${match.status} → ${expectedNext || 'nessuna'}`],
+      });
+    }
+
+    const now = new Date();
+    const updates = { status: new_status, updated_at: now };
+
+    if (new_status === 'IN_CORSO') {
+      updates.started_at = now;
+    }
+
+    await db.query(
+      'UPDATE matches SET status = ?, updated_at = ?' + (new_status === 'IN_CORSO' ? ', started_at = ?' : '') + ' WHERE id = ?',
+      new_status === 'IN_CORSO'
+        ? [new_status, now, now, matchId]
+        : [new_status, now, matchId]
+    );
+
+    if (new_status === 'CERTIFICATA') {
+      await db.query(
+        `INSERT INTO match_status_logs (match_id, from_status, to_status, changed_by, changed_at)
+         VALUES (?, ?, ?, ?, ?)`,
+        [matchId, match.status, new_status, updated_by, now]
+      );
+    }
+
+    return res.status(200).json({
+      id: matchId,
+      status: new_status,
+      startedAt: new_status === 'IN_CORSO' ? now : match.started_at,
+      updatedBy: updated_by,
+      updatedAt: now,
+    });
+  } catch (err) {
+    console.error('updateMatchStatus error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 const VALID_EVENT_TYPES = [
