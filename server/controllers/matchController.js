@@ -413,8 +413,71 @@ async function getMatchEvents(req, res) {
   }
 }
 
-function confirmEvent(req, res) {
-  res.status(501).json({ error: 'Not implemented' });
+const CONFIRMABLE_STATUSES = ['IN_CORSO', 'TERMINATA'];
+const CONSENSUS_THRESHOLD = 3;
+
+async function confirmEvent(req, res) {
+  const { matchId, eventId } = req.params;
+  const user_id = req.user.userId;
+
+  try {
+    const [[match]] = await db.query('SELECT id, status FROM matches WHERE id = ?', [matchId]);
+    if (!match) {
+      return res.status(404).json({ error: 'Partita non trovata' });
+    }
+
+    if (!CONFIRMABLE_STATUSES.includes(match.status)) {
+      return res.status(422).json({ errors: [`Le conferme sono possibili solo su partite IN_CORSO o TERMINATA`] });
+    }
+
+    const [[event]] = await db.query(
+      'SELECT id, match_id, created_by, reliability FROM match_events WHERE id = ? AND match_id = ?',
+      [eventId, matchId]
+    );
+    if (!event) {
+      return res.status(404).json({ error: 'Evento non trovato' });
+    }
+
+    if (String(event.created_by) === String(user_id)) {
+      return res.status(403).json({ error: 'Non puoi confermare un evento che hai inserito tu stesso' });
+    }
+
+    const [[existing]] = await db.query(
+      'SELECT id FROM event_confirmations WHERE event_id = ? AND user_id = ?',
+      [eventId, user_id]
+    );
+    if (existing) {
+      return res.status(409).json({ error: 'Hai già confermato questo evento' });
+    }
+
+    await db.query(
+      'INSERT INTO event_confirmations (event_id, user_id, confirmed_at) VALUES (?, ?, NOW())',
+      [eventId, user_id]
+    );
+
+    const [[{ total }]] = await db.query(
+      'SELECT COUNT(*) AS total FROM event_confirmations WHERE event_id = ?',
+      [eventId]
+    );
+
+    let reliability = event.reliability;
+    if (total >= CONSENSUS_THRESHOLD && reliability === 'community') {
+      reliability = 'confermato';
+      await db.query(
+        "UPDATE match_events SET reliability = 'confermato' WHERE id = ?",
+        [eventId]
+      );
+    }
+
+    return res.status(200).json({
+      eventId,
+      confirmations: total,
+      reliability,
+    });
+  } catch (err) {
+    console.error('confirmEvent error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
 }
 
 module.exports = {
