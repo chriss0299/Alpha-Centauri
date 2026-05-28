@@ -63,3 +63,9 @@ Registro immutabile di ogni modifica a eventi di partite `CERTIFICATE`. Contiene
 
 ### Client Redis (singleton)
 Istanza condivisa del client `redis` (node-redis v4) esposta da `server/redis.js`. Tutti i moduli che usano Redis (futuro: cache, rate limiter cross-istanza, adapter Socket.io) la importano da qui anziché crearne una nuova. Stato: `client.isReady` indica connessione attiva. Healthcheck: `GET /api/v1/health/redis`.
+
+### Sliding window log (rate limiting)
+Algoritmo di rate limiting che registra ogni richiesta come timestamp in un sorted set (ZSET) per identità. Ad ogni nuova richiesta si rimuovono i timestamp fuori finestra (`ZREMRANGEBYSCORE`) e si conta il resto (`ZCARD`): se il count supera `max`, la richiesta viene rifiutata. A differenza del fixed window non ha "cliff" al boundary della finestra. Implementato in `server/middleware/rateLimitRedis.js` per gli endpoint di scrittura.
+
+### Fail-open (rate limiter)
+Comportamento del rate limiter quando il backend Redis non risponde o non è pronto: la richiesta viene **lasciata passare** anziché rifiutata. Scelta deliberata: un Redis down non deve diventare un DoS interno sul traffico scrittura. Vedi `docs/decisions.md` (BE-021).

@@ -16,6 +16,8 @@
 
 ## Redis (follow-up BE-014)
 
-- [ ] **Rate limiter su Redis store** — quando si passerà a multi-istanza del backend, sostituire memory store di `express-rate-limit` con `rate-limit-redis`.
+- [x] **Rate limiter scrittura su Redis** — fatto in BE-021 (sliding window log con ZSET).
+- [ ] **Rate limiter `auth` su Redis** — il limiter `auth` (10/15min) resta su memory store: migrarlo quando si passerà a multi-istanza.
 - [ ] **Socket.io Redis adapter** — necessario per scaling multi-istanza del live feed (room `match:<id>` condivise tra processi).
 - [ ] **Cache hot data** — valutare cache di letture frequenti (lista campionati, statistiche aggregate squadra) con TTL 60–300s.
+- [ ] **Lua script atomico per sliding window** — se sotto carico reale emergono race condition tra `ZCARD` e `ZADD`, sostituire MULTI/EXEC con script Lua atomico.
