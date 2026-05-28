@@ -157,6 +157,20 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-28 Rate limiting scrittura su Redis con sliding window log (BE-021)
+
+**Decisione:** Il rate limiter `write` (30 req/min sugli endpoint di scrittura) usa Redis come store con algoritmo sliding window log basato su ZSET. Il limiter `auth` resta su memory store per ora.
+
+**Motivazione:** Il memory store di `express-rate-limit` ha due limiti: (1) counter per-istanza, non condiviso quando il backend scala orizzontalmente (un attaccante moltiplica la propria quota); (2) finestra fissa, che permette burst di 2×max al boundary. Sliding window log con ZSET garantisce un limite per identità unificato tra repliche e una "media mobile" sulla finestra, eliminando il cliff. Il limiter `auth` resta su memory: brute-force protection ha già una finestra di 15 minuti e una singola istanza non amplifica il problema così velocemente — la migrazione è follow-up indipendente.
+
+**Alternative scartate:** `rate-limit-redis` store (fixed window — non risolve il problema del cliff); leaky bucket (più complesso, valore aggiunto basso per il pattern uso live feed); token bucket via INCR + EXPIRE (fixed window mascherato, stesso problema del cliff); Lua script atomico (over-engineering per ora — MULTI/EXEC è sufficiente, valuteremo solo se emergono race condition reali sotto carico).
+
+**Comportamento degraded:** Se `client.isReady === false` o un'operazione Redis fallisce, il middleware fa **fail-open** (log warning, richiesta passa). Un Redis down non deve trasformarsi in un DoS interno bloccando tutto il traffico di scrittura. Il rischio (burst illimitato in finestra degraded) è accettabile data la durata tipica di un'interruzione Redis.
+
+**Dettaglio implementativo:** `server/middleware/rateLimitRedis.js` esporta la factory `createSlidingWindowLimiter({ keyPrefix, windowMs, max, getIdentity })`. Chiave Redis: `rl:<prefix>:<u:userId|ip:address>`. Ad ogni richiesta: `ZREMRANGEBYSCORE 0 (now - windowMs)` + `ZCARD` in MULTI; se count ≥ max → 429; altrimenti `ZADD` + `PEXPIRE windowMs`. Header standard `RateLimit-Limit/Remaining/Reset` (RFC draft 9). Member ZSET = `<ts>-<uuid>` per evitare collisioni su timestamp duplicati. Identità default: `u:<userId>` se autenticato, altrimenti `ip:<req.ip>`.
+
+---
+
 ## 2026-05-21 Layout base: `@nuxt/icon` + `useState` per auth temporaneo (FE-002)
 
 **Decisione:** Icone via `@nuxt/icon` (Iconify). Stato auth in `useState('auth-user')` — da migrare a Pinia in FE-003.

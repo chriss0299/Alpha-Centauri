@@ -1,11 +1,10 @@
 const rateLimit = require('express-rate-limit');
+const { createSlidingWindowLimiter } = require('./rateLimitRedis');
 
-const write = rateLimit({
+const write = createSlidingWindowLimiter({
+  keyPrefix: 'write',
   windowMs: 60 * 1000,
   max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Troppe richieste, riprova tra poco' },
 });
 
 const auth = rateLimit({
