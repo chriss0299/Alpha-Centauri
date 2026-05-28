@@ -14,6 +14,13 @@
 
 - [ ] **Recupero password** — pagina `/recupera-password` è placeholder. Implementare flow completo con email transazionale + token one-time.
 
+## Test E2E (follow-up TEST-001)
+
+- [ ] **CI GitHub Actions per E2E** — workflow che lancia `npm run test:e2e` su ogni PR. Caching node_modules e immagini Docker. Upload screenshots/video di failure come artifacts.
+- [ ] **Suite E2E completa** — coprire incrementalmente: registrazione utente, creazione partita, regola minuto 1, inserimento evento, certificazione.
+- [ ] **Test E2E mobile viewport** — `cy.viewport('iphone-x')` per validare bottom nav e layout PWA mobile.
+- [ ] **Visual regression** — valutare Percy o `cypress-image-snapshot` per la home, scheda partita, pagina classifica.
+
 ## Redis (follow-up BE-014)
 
 - [x] **Rate limiter scrittura su Redis** — fatto in BE-021 (sliding window log con ZSET).

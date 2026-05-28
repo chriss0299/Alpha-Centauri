@@ -1,0 +1,63 @@
+services:
+  mysql-test:
+    image: mysql:8.0
+    container_name: rugbytracker-mysql-test
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rugbytracker_test
+      MYSQL_USER: rugbyuser
+      MYSQL_PASSWORD: rugbypass
+    ports:
+      - "3309:3306"
+    volumes:
+      - ./database/migrations:/docker-entrypoint-initdb.d/01-migrations:ro
+      - ./database/seeds/test:/docker-entrypoint-initdb.d/02-seeds:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: rugbytracker-redis-test
+    ports:
+      - "6380:6379"
+
+  server-test:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: rugbytracker-server-test
+    depends_on:
+      mysql-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_started
+    environment:
+      NODE_ENV: test
+      PORT: 3000
+      DB_HOST: mysql-test
+      DB_PORT: 3306
+      DB_NAME: rugbytracker_test
+      DB_USER: rugbyuser
+      DB_PASSWORD: rugbypass
+      REDIS_URL: redis://redis-test:6379
+      JWT_SECRET: e2e-test-secret-not-sensitive-localhost-only
+      GOOGLE_CLIENT_ID: ""
+    ports:
+      - "3002:3000"
+
+  client-test:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: rugbytracker-client-test
+    depends_on:
+      - server-test
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:3002/api/v1
+      NUXT_PUBLIC_GOOGLE_CLIENT_ID: ""
+    ports:
+      - "3003:3000"

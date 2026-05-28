@@ -7,7 +7,14 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "e2e:up": "docker compose -f ../docker-compose.test.yml up -d --build",
+    "e2e:wait": "wait-on http://localhost:3002/api/v1/health/redis http://localhost:3003 --timeout 120000",
+    "e2e:down": "docker compose -f ../docker-compose.test.yml down -v",
+    "cy:run": "cypress run",
+    "cy:open": "cypress open",
+    "test:e2e": "npm run e2e:up && npm run e2e:wait && npm run cy:run && npm run e2e:down",
+    "test:e2e:open": "npm run e2e:up && npm run e2e:wait && npm run cy:open"
   },
   "dependencies": {
     "@nuxt/icon": "^2.2.2",
@@ -19,6 +26,8 @@
     "vue-router": "^5.0.7"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "^1.2.3"
+    "@iconify-json/mdi": "^1.2.3",
+    "cypress": "^15.16.0",
+    "wait-on": "^9.0.10"
   }
 }
