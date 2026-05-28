@@ -19,7 +19,8 @@
 - [ ] **CI GitHub Actions per E2E** — workflow che lancia `npm run test:e2e` su ogni PR. Caching node_modules e immagini Docker. Upload screenshots/video di failure come artifacts.
 - [ ] **Suite E2E completa** — coprire incrementalmente: registrazione utente, creazione partita, regola minuto 1, inserimento evento, certificazione.
 - [ ] **Test E2E mobile viewport** — `cy.viewport('iphone-x')` per validare bottom nav e layout PWA mobile.
-- [ ] **Visual regression** — valutare Percy o `cypress-image-snapshot` per la home, scheda partita, pagina classifica.
+- [ ] **Visual regression** — valutare `@playwright/test` toHaveScreenshot oppure Percy per la home, scheda partita, pagina classifica.
+- [ ] **Indagare bug submit form login** — `button[type="submit"].click()` non scatena `@submit.prevent` in modo affidabile su Nuxt dev. Workaround attuale in test E2E: pressione Enter dal campo password. Verificare se è bug di template `login.vue` o timing HMR.
 
 ## Redis (follow-up BE-014)
 

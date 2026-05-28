@@ -5,10 +5,14 @@ const redis = require('./redis');
 
 const app = express();
 
-const ALLOWED_ORIGINS = [
+const DEFAULT_ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
 ];
+
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+  : DEFAULT_ALLOWED_ORIGINS;
 
 app.use(cors({
   origin: (origin, cb) => {

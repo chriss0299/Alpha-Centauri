@@ -23,7 +23,8 @@ logs
 .env.*
 !.env.example
 
-# Cypress artifacts
-cypress/videos
-cypress/screenshots
-cypress/downloads
+# Playwright artifacts
+test-results
+playwright-report
+blob-report
+playwright/.cache

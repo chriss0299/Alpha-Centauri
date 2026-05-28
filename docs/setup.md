@@ -68,20 +68,20 @@ docker compose down   # ferma backend + DB + Redis
 
 ## Test E2E
 
-Stack Docker isolato dal dev (porte 3309/6380/3002/3003) con Cypress come driver.
+Stack Docker isolato dal dev (porte 3309/6380/3002/3003) con Playwright come driver.
 
 **Lancio completo (CI-style):**
 ```bash
 cd client
 npm run test:e2e
-# → up stack test, wait readiness, cypress run headless, down + cleanup volumi
+# → up stack test, wait readiness, playwright test, down + cleanup volumi
 ```
 
 **Modalità interattiva (debug):**
 ```bash
 cd client
-npm run test:e2e:open
-# → up stack, apre Cypress GUI. Spegni manualmente con: npm run e2e:down
+npm run test:e2e:ui
+# → up stack, apre Playwright UI. Spegni manualmente con: npm run e2e:down
 ```
 
 **Cleanup manuale (se i test sono falliti):**
@@ -93,7 +93,12 @@ cd client && npm run e2e:down
 - email: `e2e@test.local` / `admin@test.local`
 - password: `E2EPass123!`
 
-Dettagli implementativi in `docs/decisions.md` (TEST-001) e nella user story `docs/user-stories/test/TEST-001-e2e-cypress-setup.md`.
+**Trace viewer (debug failure):**
+```bash
+cd client && npx playwright show-trace test-results/<nome-cartella>/trace.zip
+```
+
+Dettagli implementativi in `docs/decisions.md` (TEST-002) e nelle user story `docs/user-stories/test/TEST-001-e2e-cypress-setup.md` + `TEST-002-migrate-cypress-to-playwright.md`.
 
 ## graphify (knowledge graph del progetto)
 
