@@ -272,6 +272,80 @@ async function addMatchEvent(req, res) {
   }
 }
 
+const VALID_RELIABILITY = ['community', 'confermato', 'verificato', 'certificato'];
+
+async function getMatchEvents(req, res) {
+  const { matchId } = req.params;
+  const { event_type, reliability, page = 1, limit = 50 } = req.query;
+
+  if (reliability && !VALID_RELIABILITY.includes(reliability)) {
+    return res.status(422).json({ errors: [`reliability non valido. Valori ammessi: ${VALID_RELIABILITY.join(', ')}`] });
+  }
+
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(200, Math.max(1, parseInt(limit, 10) || 50));
+  const offset = (pageNum - 1) * limitNum;
+
+  try {
+    const [[match]] = await db.query('SELECT id FROM matches WHERE id = ?', [matchId]);
+    if (!match) {
+      return res.status(404).json({ error: 'Partita non trovata' });
+    }
+
+    const conditions = ['me.match_id = ?'];
+    const params = [matchId];
+
+    if (event_type) {
+      conditions.push('me.event_type = ?');
+      params.push(event_type);
+    }
+    if (reliability) {
+      conditions.push('me.reliability = ?');
+      params.push(reliability);
+    }
+
+    const where = `WHERE ${conditions.join(' AND ')}`;
+
+    const [[{ total }]] = await db.query(
+      `SELECT COUNT(*) AS total FROM match_events me ${where}`,
+      params
+    );
+
+    const [rows] = await db.query(
+      `SELECT
+         me.id, me.event_type, me.minute, me.player_id, me.description,
+         me.reliability, me.created_by, me.created_at,
+         t.id AS team_id, t.name AS team_name
+       FROM match_events me
+       JOIN teams t ON t.id = me.team_id
+       ${where}
+       ORDER BY me.minute ASC, me.created_at ASC
+       LIMIT ? OFFSET ?`,
+      [...params, limitNum, offset]
+    );
+
+    return res.status(200).json({
+      data: rows.map((e) => ({
+        id: e.id,
+        eventType: e.event_type,
+        minute: e.minute,
+        team: { id: e.team_id, name: e.team_name },
+        playerId: e.player_id,
+        description: e.description,
+        reliability: e.reliability,
+        createdBy: e.created_by,
+        createdAt: e.created_at,
+      })),
+      page: pageNum,
+      limit: limitNum,
+      total,
+    });
+  } catch (err) {
+    console.error('getMatchEvents error:', err);
+    return res.status(500).json({ error: 'Errore interno del server' });
+  }
+}
+
 function confirmEvent(req, res) {
   res.status(501).json({ error: 'Not implemented' });
 }
@@ -282,6 +356,7 @@ module.exports = {
   getMatches,
   getMatchById,
   updateMatchStatus,
+  getMatchEvents,
   addMatchEvent,
   confirmEvent,
 };
