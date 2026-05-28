@@ -145,6 +145,18 @@ Registro delle scelte significative con motivazione. Aggiornare ad ogni nuova de
 
 ---
 
+## 2026-05-28 Client Redis condiviso con connessione graceful (BE-014)
+
+**Decisione:** Il backend espone un'unica istanza singleton del client `redis` (node-redis v4) tramite `server/redis.js`. La connessione viene tentata al boot prima di `app.listen` ma un fallimento iniziale non impedisce l'avvio del server.
+
+**Motivazione:** Redis è una dipendenza utile (cache, rate limit cross-istanza, futuro adapter Socket.io) ma non bloccante per il funzionamento base dell'API. Un singleton evita di moltiplicare connessioni TCP. La connessione "graceful" permette al server di partire anche se Redis è momentaneamente irraggiungibile, lasciando ai consumer la responsabilità di verificare `client.isReady` prima di usarlo. L'healthcheck dedicato `GET /api/v1/health/redis` rende lo stato visibile a monitoring e dev.
+
+**Alternative scartate:** `ioredis` (più feature ma API meno aderente alla doc ufficiale Socket.io e meno comunità node-redis v4+); connessione lazy a primo uso (rende meno prevedibili i tempi di risposta della prima richiesta); fallimento bloccante al boot (un Redis flaky farebbe crashare il server in cascata, mentre l'API può operare degradata).
+
+**Dettaglio implementativo:** `server/redis.js` esporta `{ client, connect, disconnect }`. Reconnect strategy esponenziale con cap a 30s. `app.js` chiama `redis.connect()` in `require.main === module`, registra handler `SIGTERM`/`SIGINT` per `client.quit()` graceful. Healthcheck: `503 { status: 'down' }` se `!isReady` o `PING != PONG`, `200 { status: 'ok' }` altrimenti.
+
+---
+
 ## 2026-05-21 Layout base: `@nuxt/icon` + `useState` per auth temporaneo (FE-002)
 
 **Decisione:** Icone via `@nuxt/icon` (Iconify). Stato auth in `useState('auth-user')` — da migrare a Pinia in FE-003.

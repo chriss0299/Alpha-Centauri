@@ -45,6 +45,13 @@ npm run dev
 
 **Verifica:** `docker compose ps` mostra 4 container in stato healthy.
 
+**Healthcheck Redis:**
+```bash
+curl http://localhost:3000/api/v1/health/redis
+# → 200 { "status": "ok" } se Redis è raggiungibile
+# → 503 { "status": "down" } altrimenti
+```
+
 ## Stop
 
 ```bash

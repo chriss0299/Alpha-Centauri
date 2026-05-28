@@ -13,3 +13,9 @@
 ## Password
 
 - [ ] **Recupero password** — pagina `/recupera-password` è placeholder. Implementare flow completo con email transazionale + token one-time.
+
+## Redis (follow-up BE-014)
+
+- [ ] **Rate limiter su Redis store** — quando si passerà a multi-istanza del backend, sostituire memory store di `express-rate-limit` con `rate-limit-redis`.
+- [ ] **Socket.io Redis adapter** — necessario per scaling multi-istanza del live feed (room `match:<id>` condivise tra processi).
+- [ ] **Cache hot data** — valutare cache di letture frequenti (lista campionati, statistiche aggregate squadra) con TTL 60–300s.
