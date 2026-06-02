@@ -17,7 +17,7 @@ CREATE TABLE teams (
   region              VARCHAR(100)    NULL,
   logo_url            VARCHAR(500)    NULL,
   is_verified         BOOLEAN         NOT NULL DEFAULT FALSE,
-  claimed_by_user_id  INT UNSIGNED    NULL,
+  claimed_by_user_id  INT             NULL,
   created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -26,7 +26,7 @@ CREATE TABLE teams (
   -- SET NULL: se l'utente viene eliminato, la squadra rimane ma diventa non reclamata
   CONSTRAINT fk_teams_claimed_by_user
     FOREIGN KEY (claimed_by_user_id) REFERENCES users (id)
-    ON DELETE SET NULL
+    ON DELETE SET NULL  
     ON UPDATE CASCADE,
 
   INDEX idx_teams_claimed_by_user_id (claimed_by_user_id)
