@@ -296,7 +296,7 @@ Per sapere "quali squadre giocano in Serie B nel 2025/26" si passa per tre tabel
 | `standings` | Alta | Logica bonus point FIR — VIEW o trigger |
 | `player_profiles` + GDPR | Alta | FK nullable + vincoli minori |
 | `comments`, `follows`, `audit_log` | Bassa | Pattern standard |
-
+3
 ---
 
 ## Entità e relazioni — proposta schema
