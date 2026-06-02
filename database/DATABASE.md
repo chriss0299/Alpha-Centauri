@@ -65,6 +65,11 @@ Tutti i `CREATE TABLE` usano `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8
 | `003` | ALTER `users` | Aggiunge `google_id VARCHAR(255) NULL UNIQUE` |
 | `004` | ALTER `users` | Rende `password_hash` nullable (utenti solo OAuth) |
 | `005` | ALTER `users` | Aggiorna `role` ENUM → `superadmin`, `admin`, `user_pro`, `user` |
+| `006` | `teams` | Squadre: nome, città, stato verifica, FK utente che la gestisce |
+| `007` | `championships` | Campionati: nome, livello ENUM, regione |
+| `008` | `seasons` | Stagioni sportive (es. `2025/26`) |
+| `009` | `championship_seasons` | Join campionato × stagione, con gruppi/gironi opzionali |
+| `010` | `championship_season_teams` | Iscrizioni squadre a una specifica edizione del campionato |
 
 ### `users`
 
@@ -117,13 +122,89 @@ Tutti i `CREATE TABLE` usano `ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8
 
 ---
 
+---
+
+### `teams`
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INT UNSIGNED PK AUTO_INCREMENT | |
+| `name` | VARCHAR(150) NOT NULL | |
+| `short_name` | VARCHAR(20) NOT NULL | |
+| `city` | VARCHAR(100) NOT NULL | |
+| `region` | VARCHAR(100) NULL | |
+| `logo_url` | VARCHAR(500) NULL | Punta a storage S3-compatible |
+| `is_verified` | BOOLEAN DEFAULT FALSE | Verifica completata da superadmin |
+| `claimed_by_user_id` | INT NULL | FK → `users.id ON DELETE SET NULL` — NULL = squadra non reclamata |
+| `created_at` / `updated_at` | DATETIME | |
+
+> `claimed_by_user_id` è `INT` (non UNSIGNED) per corrispondere al tipo di `users.id`.
+
+---
+
+### `championships`
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INT UNSIGNED PK AUTO_INCREMENT | |
+| `name` | VARCHAR(200) NOT NULL | |
+| `short_name` | VARCHAR(50) NULL | |
+| `level` | ENUM NOT NULL | `serie_a_elite`, `serie_a`, `serie_b`, `serie_c`, `under_18`→`under_6`, `regional`, `other` |
+| `region` | VARCHAR(100) NULL | NULL = campionato nazionale |
+| `created_at` / `updated_at` | DATETIME | |
+
+---
+
+### `seasons`
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INT UNSIGNED PK AUTO_INCREMENT | |
+| `name` | VARCHAR(10) NOT NULL UNIQUE | Formato `YYYY/YY` (es. `2025/26`) |
+| `start_date` | DATE NOT NULL | |
+| `end_date` | DATE NOT NULL | |
+| `is_current` | BOOLEAN DEFAULT FALSE | Al massimo una riga TRUE — invariante applicativa |
+| `created_at` | DATETIME | |
+
+---
+
+### `championship_seasons`
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INT UNSIGNED PK AUTO_INCREMENT | |
+| `championship_id` | INT UNSIGNED NOT NULL | FK → `championships.id ON DELETE RESTRICT` |
+| `season_id` | INT UNSIGNED NOT NULL | FK → `seasons.id ON DELETE RESTRICT` |
+| `gruppo` | VARCHAR(100) NOT NULL DEFAULT '' | Stringa vuota se non applicabile (no NULL — vedi note design) |
+| `girone` | VARCHAR(100) NOT NULL DEFAULT '' | Stringa vuota se non applicabile |
+| `created_at` / `updated_at` | DATETIME | |
+| UNIQUE | `(championship_id, season_id, gruppo, girone)` | Impedisce duplicati campionato/stagione/girone |
+
+> `''` invece di NULL per `gruppo`/`girone`: MySQL tratta due NULL come distinti in UNIQUE index, rendendo impossibile bloccare duplicati per campionati senza gironi.
+
+---
+
+### `championship_season_teams`
+
+| Colonna | Tipo | Note |
+|---------|------|------|
+| `id` | INT UNSIGNED PK AUTO_INCREMENT | |
+| `championship_season_id` | INT UNSIGNED NOT NULL | FK → `championship_seasons.id ON DELETE RESTRICT` |
+| `team_id` | INT UNSIGNED NOT NULL | FK → `teams.id ON DELETE RESTRICT` |
+| `created_at` | DATETIME | |
+| UNIQUE | `(championship_season_id, team_id)` | Una squadra una volta per edizione |
+
+---
+
 ## Roadmap DB per fase
 
 ### Fase 0 — Giugno 2026 (in corso)
 - [x] Schema ER v1: `users`, `refresh_tokens`
 - [x] **Migrazione 005:** aggiorna `users.role` ENUM → `superadmin`, `admin`, `user_pro`, `user`
-- [ ] Tabelle: `teams`, `championships`, `seasons`, `championship_seasons`, `championship_season_teams`
-- [ ] Migrazioni iniziali con seed dati di test
+- [x] Tabelle: `teams`, `championships`, `seasons`, `championship_seasons`, `championship_season_teams`
+- [x] Migrazioni 006–010 con seed dati di test E2E
+- [ ] Seed squadre italiane da CSV (`dati csv/squadre_rugby_italia_2025_26.csv`)
+- [ ] Migrazione `date_of_birth` su `users` (richiede advisor — GDPR §4.5)
 - [ ] Setup phpMyAdmin + documentazione schema
 
 ### Fase 1 — Luglio 2026

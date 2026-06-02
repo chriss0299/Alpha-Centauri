@@ -41,7 +41,7 @@ Livello di affidabilità di un singolo evento nel feed:
 - ✅ **Certificato** — fonte ufficiale o Admin Squadra di entrambe le squadre
 
 ### Match lifecycle
-Sequenza stati di una partita: `PROGRAMMATA` → `IN CORSO` → `TERMINATA` → `CERTIFICATA`. Ogni transizione ha regole e attori autorizzati.
+Sequenza stati di una partita: `PROGRAMMATA` → `IN_CORSO` → `TERMINATA` → `CERTIFICATA`. Ogni transizione ha regole e attori autorizzati.
 
 ### Room Socket
 Canale Socket.io dedicato a una partita. Naming: `match:<match_id>`. Tutti i client che seguono quella partita sono iscritti alla room. Gli eventi emessi dal server hanno prefisso `match:`.

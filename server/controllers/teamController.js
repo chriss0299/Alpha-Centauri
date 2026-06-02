@@ -1,8 +1,7 @@
-const crypto = require('crypto');
 const db = require('../testdb/db');
 
 async function getTeams(req, res) {
-  const { league_id, city, name, page = 1, limit = 20 } = req.query;
+  const { championship_season_id, city, name, page = 1, limit = 20 } = req.query;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
@@ -11,9 +10,9 @@ async function getTeams(req, res) {
   const conditions = [];
   const params = [];
 
-  if (league_id) {
-    conditions.push('lt.league_id = ?');
-    params.push(league_id);
+  if (championship_season_id) {
+    conditions.push('cst.championship_season_id = ?');
+    params.push(championship_season_id);
   }
   if (city) {
     conditions.push('t.city LIKE ?');
@@ -24,7 +23,9 @@ async function getTeams(req, res) {
     params.push(`%${name}%`);
   }
 
-  const join = league_id ? 'JOIN league_teams lt ON lt.team_id = t.id' : 'LEFT JOIN league_teams lt ON lt.team_id = t.id';
+  const join = championship_season_id
+    ? 'JOIN championship_season_teams cst ON cst.team_id = t.id'
+    : '';
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
   try {
@@ -34,14 +35,11 @@ async function getTeams(req, res) {
     );
 
     const [rows] = await db.query(
-      `SELECT
-         t.id, t.name, t.short_name, t.city, t.verified,
-         c.id AS league_id, c.name AS league_name
+      `SELECT DISTINCT
+         t.id, t.name, t.short_name, t.city, t.region, t.logo_url, t.is_verified
        FROM teams t
        ${join}
-       LEFT JOIN championships c ON c.id = lt.league_id
        ${where}
-       GROUP BY t.id
        ORDER BY t.name ASC
        LIMIT ? OFFSET ?`,
       [...params, limitNum, offset]
@@ -53,8 +51,9 @@ async function getTeams(req, res) {
         name: t.name,
         shortName: t.short_name,
         city: t.city,
-        league: t.league_id ? { id: t.league_id, name: t.league_name } : null,
-        verified: Boolean(t.verified),
+        region: t.region,
+        logoUrl: t.logo_url,
+        isVerified: Boolean(t.is_verified),
       })),
       page: pageNum,
       limit: limitNum,
@@ -67,12 +66,12 @@ async function getTeams(req, res) {
 }
 
 async function createTeam(req, res) {
-  const { name, city, short_name, league_id, website } = req.body;
-  const created_by = req.user.id;
+  const { name, city, short_name, region, logo_url } = req.body;
   const errors = [];
 
   if (!name) errors.push('name obbligatorio');
   if (!city) errors.push('city obbligatorio');
+  if (!short_name) errors.push('short_name obbligatorio');
 
   if (errors.length > 0) {
     return res.status(422).json({ errors });
@@ -88,30 +87,16 @@ async function createTeam(req, res) {
       return res.status(409).json({ error: 'Squadra già esistente con questo nome e città' });
     }
 
-    const id = crypto.randomUUID();
-    const now = new Date();
-
-    await db.query(
-      `INSERT INTO teams (id, name, short_name, city, website, verified, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, false, ?, ?)`,
-      [id, name, short_name || null, city, website || null, created_by, now]
+    const [result] = await db.query(
+      `INSERT INTO teams (name, short_name, city, region, logo_url)
+       VALUES (?, ?, ?, ?, ?)`,
+      [name, short_name, city, region || null, logo_url || null]
     );
 
-    if (league_id) {
-      await db.query(
-        'INSERT INTO league_teams (league_id, team_id) VALUES (?, ?)',
-        [league_id, id]
-      );
-    }
+    const id = result.insertId;
 
     const [[team]] = await db.query(
-      `SELECT
-         t.id, t.name, t.short_name, t.city, t.website, t.verified, t.created_by, t.created_at,
-         c.id AS league_id, c.name AS league_name
-       FROM teams t
-       LEFT JOIN league_teams lt ON lt.team_id = t.id
-       LEFT JOIN championships c ON c.id = lt.league_id
-       WHERE t.id = ?`,
+      'SELECT id, name, short_name, city, region, logo_url, is_verified FROM teams WHERE id = ?',
       [id]
     );
 
@@ -120,11 +105,9 @@ async function createTeam(req, res) {
       name: team.name,
       shortName: team.short_name,
       city: team.city,
-      website: team.website,
-      league: team.league_id ? { id: team.league_id, name: team.league_name } : null,
-      verified: Boolean(team.verified),
-      createdBy: team.created_by,
-      createdAt: team.created_at,
+      region: team.region,
+      logoUrl: team.logo_url,
+      isVerified: Boolean(team.is_verified),
     });
   } catch (err) {
     console.error('createTeam error:', err);

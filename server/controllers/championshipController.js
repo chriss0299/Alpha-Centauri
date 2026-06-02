@@ -1,8 +1,13 @@
-const crypto = require('crypto');
 const db = require('../testdb/db');
 
+const VALID_LEVELS = [
+  'serie_a_elite', 'serie_a', 'serie_b', 'serie_c',
+  'under_18', 'under_16', 'under_14', 'under_12', 'under_10', 'under_8', 'under_6',
+  'regional', 'other',
+];
+
 async function getChampionships(req, res) {
-  const { season, category, page = 1, limit = 20 } = req.query;
+  const { level, region, page = 1, limit = 20 } = req.query;
 
   const pageNum = Math.max(1, parseInt(page, 10) || 1);
   const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
@@ -11,13 +16,16 @@ async function getChampionships(req, res) {
   const conditions = [];
   const params = [];
 
-  if (season) {
-    conditions.push('season = ?');
-    params.push(season);
+  if (level) {
+    if (!VALID_LEVELS.includes(level)) {
+      return res.status(422).json({ errors: [`level non valido. Valori ammessi: ${VALID_LEVELS.join(', ')}`] });
+    }
+    conditions.push('level = ?');
+    params.push(level);
   }
-  if (category) {
-    conditions.push('category LIKE ?');
-    params.push(`%${category}%`);
+  if (region) {
+    conditions.push('region LIKE ?');
+    params.push(`%${region}%`);
   }
 
   const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -29,10 +37,10 @@ async function getChampionships(req, res) {
     );
 
     const [rows] = await db.query(
-      `SELECT id, name, season, category, region, description
+      `SELECT id, name, short_name, level, region
        FROM championships
        ${where}
-       ORDER BY season DESC, name ASC
+       ORDER BY level ASC, name ASC
        LIMIT ? OFFSET ?`,
       [...params, limitNum, offset]
     );
@@ -41,10 +49,9 @@ async function getChampionships(req, res) {
       data: rows.map((c) => ({
         id: c.id,
         name: c.name,
-        season: c.season,
-        category: c.category,
+        shortName: c.short_name,
+        level: c.level,
         region: c.region,
-        description: c.description,
       })),
       page: pageNum,
       limit: limitNum,
@@ -57,13 +64,14 @@ async function getChampionships(req, res) {
 }
 
 async function createChampionship(req, res) {
-  const { name, season, category, region, description } = req.body;
-  const created_by = req.user.id;
+  const { name, short_name, level, region } = req.body;
   const errors = [];
 
   if (!name) errors.push('name obbligatorio');
-  if (!season) errors.push('season obbligatorio');
-  if (!category) errors.push('category obbligatorio');
+  if (!level) errors.push('level obbligatorio');
+  else if (!VALID_LEVELS.includes(level)) {
+    errors.push(`level non valido. Valori ammessi: ${VALID_LEVELS.join(', ')}`);
+  }
 
   if (errors.length > 0) {
     return res.status(422).json({ errors });
@@ -71,37 +79,33 @@ async function createChampionship(req, res) {
 
   try {
     const [[existing]] = await db.query(
-      'SELECT id FROM championships WHERE name = ? AND season = ?',
-      [name, season]
+      'SELECT id FROM championships WHERE name = ? AND level = ?',
+      [name, level]
     );
 
     if (existing) {
-      return res.status(409).json({ error: 'Campionato già esistente con questo nome e stagione' });
+      return res.status(409).json({ error: 'Campionato già esistente con questo nome e livello' });
     }
 
-    const id = crypto.randomUUID();
-    const now = new Date();
-
-    await db.query(
-      `INSERT INTO championships (id, name, season, category, region, description, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [id, name, season, category, region || null, description || null, created_by, now]
+    const [result] = await db.query(
+      `INSERT INTO championships (name, short_name, level, region)
+       VALUES (?, ?, ?, ?)`,
+      [name, short_name || null, level, region || null]
     );
 
+    const id = result.insertId;
+
     const [[championship]] = await db.query(
-      'SELECT id, name, season, category, region, description, created_by, created_at FROM championships WHERE id = ?',
+      'SELECT id, name, short_name, level, region FROM championships WHERE id = ?',
       [id]
     );
 
     return res.status(201).json({
       id: championship.id,
       name: championship.name,
-      season: championship.season,
-      category: championship.category,
+      shortName: championship.short_name,
+      level: championship.level,
       region: championship.region,
-      description: championship.description,
-      createdBy: championship.created_by,
-      createdAt: championship.created_at,
     });
   } catch (err) {
     console.error('createChampionship error:', err);

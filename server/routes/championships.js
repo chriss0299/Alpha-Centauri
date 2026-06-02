@@ -7,7 +7,7 @@ const rateLimiter = require('../middleware/rateLimiter');
 // Lista campionati (pubblica)
 router.get('/', championshipController.getChampionships);
 
-// Crea campionato (solo Admin/Editor)
-router.post('/', authMiddleware.requireRole(['super_admin', 'editor']), rateLimiter.write, championshipController.createChampionship);
+// Crea campionato (solo superadmin)
+router.post('/', authMiddleware.requireRole(['superadmin']), rateLimiter.write, championshipController.createChampionship);
 
 module.exports = router;

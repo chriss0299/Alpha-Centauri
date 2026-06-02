@@ -14,6 +14,12 @@ services:
       - ./database/migrations/002_create_refresh_tokens_table.sql:/docker-entrypoint-initdb.d/01_002_refresh_tokens.sql:ro
       - ./database/migrations/003_add_google_id_to_users.sql:/docker-entrypoint-initdb.d/01_003_google_id.sql:ro
       - ./database/migrations/004_password_hash_nullable.sql:/docker-entrypoint-initdb.d/01_004_password_nullable.sql:ro
+      - ./database/migrations/005_update_users_role_enum.sql:/docker-entrypoint-initdb.d/01_005_users_role_enum.sql:ro
+      - ./database/migrations/006_create_teams_table.sql:/docker-entrypoint-initdb.d/01_006_teams.sql:ro
+      - ./database/migrations/007_create_championships_table.sql:/docker-entrypoint-initdb.d/01_007_championships.sql:ro
+      - ./database/migrations/008_create_seasons_table.sql:/docker-entrypoint-initdb.d/01_008_seasons.sql:ro
+      - ./database/migrations/009_create_championship_seasons_table.sql:/docker-entrypoint-initdb.d/01_009_championship_seasons.sql:ro
+      - ./database/migrations/010_create_championship_season_teams_table.sql:/docker-entrypoint-initdb.d/01_010_championship_season_teams.sql:ro
       - ./database/seeds/test/001_e2e_users.sql:/docker-entrypoint-initdb.d/02_001_e2e_users.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
