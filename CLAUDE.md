@@ -68,7 +68,7 @@ Alpha-Centauri/
 - **Amministratore**: Super Admin / Moderatore / Editor (staff interno)
 
 ### Stati di una partita
-`PROGRAMMATA` → `IN CORSO` → `TERMINATA` → `CERTIFICATA`
+`PROGRAMMATA` → `IN_CORSO` → `TERMINATA` → `CERTIFICATA`
 
 La regola del **minuto 1**: gli eventi di gioco sono inseribili solo dopo 60 secondi dall'inizio.
 

@@ -1,13 +1,13 @@
 const db = require('../testdb/db');
 
-function isMinorWithoutConsent(user) {
-  if (!user.date_of_birth) return false;
-  const age = (Date.now() - new Date(user.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000);
-  return age < 18 && !user.parental_consent;
+// date_of_birth non ancora presente in users — protezione GDPR minori da implementare
+// quando la migrazione aggiunge la colonna (richiede advisor per GDPR §4.5).
+function isMinorWithoutConsent(_user) {
+  return false;
 }
 
 function isOwnerOrAdmin(req, userId) {
-  return req.user && (String(req.user.userId) === String(userId) || req.user.role === 'super_admin');
+  return req.user && (String(req.user.userId) === String(userId) || req.user.role === 'superadmin');
 }
 
 async function getUserById(req, res) {
@@ -15,7 +15,7 @@ async function getUserById(req, res) {
 
   try {
     const [[user]] = await db.query(
-      `SELECT id, username, email, role, level, date_of_birth, parental_consent, created_at
+      `SELECT id, username, email, role, level, parental_consent, created_at
        FROM users WHERE id = ?`,
       [id]
     );
@@ -36,10 +36,6 @@ async function getUserById(req, res) {
 
     if (privileged) {
       profile.email = user.email;
-    }
-
-    if (!isMinorWithoutConsent(user)) {
-      // full_name esposed only when not a minor without consent — field added when available
     }
 
     return res.status(200).json(profile);
